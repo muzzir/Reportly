@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { AddClientDialog } from "@/components/clients/add-client-dialog";
 import { getClientsAction, deleteClientAction } from "@/app/actions/clients";
 import { Client } from "@/types";
-import { Plus, Globe, ExternalLink, Trash2, Loader2, Users } from "lucide-react";
+import Link from "next/link";
+import { Plus, Globe, ExternalLink, Trash2, Loader2, Users, Plug } from "lucide-react";
 
 export default function ClientsPage() {
   const [clients, setClients] = useState<Client[]>([]);
@@ -127,19 +128,31 @@ export default function ClientsPage() {
                 )}
                 <div className="flex items-center justify-between border-t border-slate-100 pt-3 dark:border-slate-800 text-[11px]">
                   <span>TZ: {client.timezone}</span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 px-2 text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950"
-                    onClick={() => handleDelete(client.id)}
-                    disabled={deletingId === client.id}
-                  >
-                    {deletingId === client.id ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    ) : (
-                      <Trash2 className="h-3.5 w-3.5" />
-                    )}
-                  </Button>
+                  <div className="flex items-center gap-1">
+                    <Link href={`/dashboard/clients/${client.id}/integrations`}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 px-2 text-[11px] gap-1 text-slate-700 dark:text-slate-300"
+                      >
+                        <Plug className="h-3 w-3 text-blue-600" />
+                        Integrations
+                      </Button>
+                    </Link>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 px-2 text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950"
+                      onClick={() => handleDelete(client.id)}
+                      disabled={deletingId === client.id}
+                    >
+                      {deletingId === client.id ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <Trash2 className="h-3.5 w-3.5" />
+                      )}
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>

@@ -1,5 +1,11 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { Database } from "@/types/database";
+
+export function getSupabaseUrl(): string {
+  const rawUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+  return rawUrl.replace(/\/rest\/v1\/?$/, "").replace(/\/$/, "");
+}
 
 /**
  * Updates user session token in cookies if expired.
@@ -10,8 +16,8 @@ export async function updateSession(request: NextRequest) {
     request,
   });
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  const supabase = createServerClient<Database>(
+    getSupabaseUrl(),
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
@@ -33,26 +39,26 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  // Refresh user session
+  // Refresh user session by calling getUser()
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   const url = request.nextUrl.clone();
+  const isDashboardRoute = url.pathname.startsWith("/dashboard");
   const isAuthRoute = url.pathname.startsWith("/login") || url.pathname.startsWith("/signup");
 
-  // Route protection rules (graceful fallback if Supabase credentials aren't initialized yet)
+  // If user is NOT authenticated and attempts to access /dashboard (or any sub-route), redirect to /login
+  if (!user && isDashboardRoute) {
+    url.pathname = "/login";
+    return NextResponse.redirect(url);
+  }
+
+  // If user IS authenticated and visits /login or /signup, redirect to /dashboard
   if (user && isAuthRoute) {
     url.pathname = "/dashboard";
     return NextResponse.redirect(url);
   }
-
-  // Note: if user is not authenticated and attempts to access dashboard, allow demo access or redirect
-  // For production security:
-  // if (!user && isDashboardRoute) {
-  //   url.pathname = "/login";
-  //   return NextResponse.redirect(url);
-  // }
 
   return supabaseResponse;
 }

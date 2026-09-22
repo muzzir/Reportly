@@ -37,6 +37,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
       agency_members: {
         Row: {
@@ -60,6 +61,15 @@ export interface Database {
           role?: "owner" | "admin" | "member";
           created_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: "agency_members_agency_id_fkey";
+            columns: ["agency_id"];
+            isOneToOne: false;
+            referencedRelation: "agencies";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       clients: {
         Row: {
@@ -98,6 +108,15 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: "clients_agency_id_fkey";
+            columns: ["agency_id"];
+            isOneToOne: false;
+            referencedRelation: "agencies";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       integrations: {
         Row: {
@@ -139,6 +158,22 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: "integrations_agency_id_fkey";
+            columns: ["agency_id"];
+            isOneToOne: false;
+            referencedRelation: "agencies";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "integrations_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       reports: {
         Row: {
@@ -150,6 +185,7 @@ export interface Database {
           status: "draft" | "generating" | "published" | "archived";
           title: string;
           generated_at: string | null;
+          metrics_summary: Json;
           created_at: string;
           updated_at: string;
         };
@@ -162,6 +198,7 @@ export interface Database {
           status?: "draft" | "generating" | "published" | "archived";
           title: string;
           generated_at?: string | null;
+          metrics_summary?: Json;
           created_at?: string;
           updated_at?: string;
         };
@@ -174,10 +211,42 @@ export interface Database {
           status?: "draft" | "generating" | "published" | "archived";
           title?: string;
           generated_at?: string | null;
+          metrics_summary?: Json;
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [
+          {
+            foreignKeyName: "reports_agency_id_fkey";
+            columns: ["agency_id"];
+            isOneToOne: false;
+            referencedRelation: "agencies";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "reports_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["id"];
+          }
+        ];
       };
+    };
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      get_user_agency_id: {
+        Args: { user_uuid: string };
+        Returns: string;
+      };
+    };
+    Enums: {
+      [_ in never]: never;
+    };
+    CompositeTypes: {
+      [_ in never]: never;
     };
   };
 }

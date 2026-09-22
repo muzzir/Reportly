@@ -1,15 +1,21 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { Database } from "@/types/database";
+
+export function getSupabaseUrl(): string {
+  const rawUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+  return rawUrl.replace(/\/rest\/v1\/?$/, "").replace(/\/$/, "");
+}
 
 /**
- * Creates a server-side Supabase client.
+ * Creates a server-side Supabase client with database types.
  * Use inside Server Components, Server Actions, and Route Handlers.
  */
 export async function createClient() {
   const cookieStore = await cookies();
 
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  return createServerClient<Database>(
+    getSupabaseUrl(),
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
@@ -23,7 +29,7 @@ export async function createClient() {
             );
           } catch {
             // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing user sessions.
+            // This can be safely ignored if middleware is refreshing user sessions.
           }
         },
       },
