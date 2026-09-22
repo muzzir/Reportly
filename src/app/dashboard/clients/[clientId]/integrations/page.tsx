@@ -22,6 +22,7 @@ import {
   AlertTriangle,
   ExternalLink,
   RefreshCw,
+  BarChart3,
 } from "lucide-react";
 
 interface ClientIntegrationsPageProps {
@@ -46,6 +47,45 @@ export default function ClientIntegrationsPage({ params }: ClientIntegrationsPag
 
   // Toast notification state
   const [toast, setToast] = useState<ToastMessage | null>(null);
+
+  // Syncing state
+  const [syncing, setSyncing] = useState(false);
+
+  const handleSyncMetrics = async () => {
+    setSyncing(true);
+    try {
+      const res = await fetch("/api/sync/metrics", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ clientId }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        setToast({
+          id: `toast-${Date.now()}`,
+          type: "error",
+          title: "Sync Failed",
+          description: data.error || "Failed to sync marketing metrics.",
+        });
+      } else {
+        setToast({
+          id: `toast-${Date.now()}`,
+          type: "success",
+          title: "Marketing Metrics Synced",
+          description: `Synced ${data.syncedRecords} records from ${data.processedIntegrations} connected platforms into Supabase database.`,
+        });
+      }
+    } catch {
+      setToast({
+        id: `toast-${Date.now()}`,
+        type: "error",
+        title: "Sync Error",
+        description: "An unexpected network error occurred while syncing metrics.",
+      });
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   const loadData = useCallback(async () => {
     const [clientsRes, integrationsRes] = await Promise.all([
@@ -197,12 +237,32 @@ export default function ClientIntegrationsPage({ params }: ClientIntegrationsPag
               Connect marketing ad platforms and web analytics engines to aggregate performance data.
             </p>
           </div>
-          {process.env.NEXT_PUBLIC_MOCK_OAUTH !== "false" && (
-            <Badge variant="outline" className="border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-300 gap-1 py-1 px-3">
-              <ShieldCheck className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
-              OAuth Developer Mock Mode Active
-            </Badge>
-          )}
+          <div className="flex items-center gap-3">
+            <Link href={`/dashboard/clients/${clientId}/reports`}>
+              <Button variant="outline" className="gap-2 border-slate-200 dark:border-slate-800">
+                <BarChart3 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                View Reports
+              </Button>
+            </Link>
+            <Button
+              onClick={handleSyncMetrics}
+              disabled={syncing || loading}
+              className="bg-blue-600 hover:bg-blue-700 text-white gap-2 shadow-sm"
+            >
+              {syncing ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="h-4 w-4" />
+              )}
+              {syncing ? "Syncing Metrics..." : "Sync Marketing Metrics"}
+            </Button>
+            {process.env.NEXT_PUBLIC_MOCK_OAUTH !== "false" && (
+              <Badge variant="outline" className="border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-300 gap-1 py-1 px-3">
+                <ShieldCheck className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+                OAuth Developer Mock Mode Active
+              </Badge>
+            )}
+          </div>
         </div>
       </div>
 

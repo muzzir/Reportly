@@ -13,6 +13,10 @@ export type ClientUpdate = Database["public"]["Tables"]["clients"]["Update"];
 export type Integration = Database["public"]["Tables"]["integrations"]["Row"];
 export type IntegrationInsert = Database["public"]["Tables"]["integrations"]["Insert"];
 
+export type MarketingMetric = Database["public"]["Tables"]["marketing_metrics"]["Row"];
+export type MarketingMetricInsert = Database["public"]["Tables"]["marketing_metrics"]["Insert"];
+export type MarketingMetricUpdate = Database["public"]["Tables"]["marketing_metrics"]["Update"];
+
 export type Report = Database["public"]["Tables"]["reports"]["Row"];
 export type ReportInsert = Database["public"]["Tables"]["reports"]["Insert"];
 export type ReportUpdate = Database["public"]["Tables"]["reports"]["Update"];
@@ -46,4 +50,3 @@ export interface DashboardKPISummary {
   connectedPlatforms: number;
   reportsThisMonth: number;
 }
-

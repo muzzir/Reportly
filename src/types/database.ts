@@ -175,6 +175,63 @@ export interface Database {
           }
         ];
       };
+      marketing_metrics: {
+        Row: {
+          id: string;
+          client_id: string;
+          integration_id: string;
+          date: string;
+          campaign_name: string;
+          spend: number;
+          impressions: number;
+          clicks: number;
+          conversions: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          client_id: string;
+          integration_id: string;
+          date: string;
+          campaign_name: string;
+          spend?: number;
+          impressions?: number;
+          clicks?: number;
+          conversions?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          client_id?: string;
+          integration_id?: string;
+          date?: string;
+          campaign_name?: string;
+          spend?: number;
+          impressions?: number;
+          clicks?: number;
+          conversions?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "marketing_metrics_client_id_fkey";
+            columns: ["client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "marketing_metrics_integration_id_fkey";
+            columns: ["integration_id"];
+            isOneToOne: false;
+            referencedRelation: "integrations";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
       reports: {
         Row: {
           id: string;

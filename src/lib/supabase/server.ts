@@ -1,11 +1,9 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { Database } from "@/types/database";
+import { getSupabaseUrl, getSupabaseAnonKey } from "./client";
 
-export function getSupabaseUrl(): string {
-  const rawUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-  return rawUrl.replace(/\/rest\/v1\/?$/, "").replace(/\/$/, "");
-}
+export { getSupabaseUrl, getSupabaseAnonKey };
 
 /**
  * Creates a server-side Supabase client with database types.
@@ -16,7 +14,7 @@ export async function createClient() {
 
   return createServerClient<Database>(
     getSupabaseUrl(),
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    getSupabaseAnonKey(),
     {
       cookies: {
         getAll() {
