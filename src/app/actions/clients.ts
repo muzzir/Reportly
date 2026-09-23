@@ -94,3 +94,28 @@ export async function deleteClientAction(clientId: string): Promise<{ success?: 
 
   return { success: true };
 }
+
+export async function updateClientAutomationAction(
+  clientId: string,
+  auto_report_enabled: boolean,
+  auto_report_emails: string[]
+): Promise<{ data?: Client; error?: string }> {
+  const supabase = createClient();
+
+  const { data, error } = await supabase
+    .from("clients")
+    .update({
+      auto_report_enabled,
+      auto_report_emails,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", clientId)
+    .select()
+    .single();
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  return { data: data as Client };
+}

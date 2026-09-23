@@ -81,6 +81,9 @@ export interface Database {
           industry: string | null;
           timezone: string;
           currency: string;
+          auto_report_enabled: boolean;
+          auto_report_emails: string[] | null;
+          last_report_sent_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -93,6 +96,9 @@ export interface Database {
           industry?: string | null;
           timezone?: string;
           currency?: string;
+          auto_report_enabled?: boolean;
+          auto_report_emails?: string[] | null;
+          last_report_sent_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -105,6 +111,9 @@ export interface Database {
           industry?: string | null;
           timezone?: string;
           currency?: string;
+          auto_report_enabled?: boolean;
+          auto_report_emails?: string[] | null;
+          last_report_sent_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };

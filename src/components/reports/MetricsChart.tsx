@@ -29,6 +29,7 @@ interface CustomTooltipProps {
 
 interface MetricsChartProps {
   data: TimeSeriesMetricPoint[];
+  primaryColor?: string;
 }
 
 function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
@@ -57,10 +58,12 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   return null;
 }
 
-export function MetricsChart({ data }: MetricsChartProps) {
+export function MetricsChart({ data, primaryColor }: MetricsChartProps) {
   if (!data || data.length === 0) {
     return null;
   }
+
+  const spendColor = primaryColor || "#2563eb";
 
   return (
     <Card className="border-slate-200 dark:border-slate-800">
@@ -124,7 +127,7 @@ export function MetricsChart({ data }: MetricsChartProps) {
                 yAxisId="left"
                 dataKey="spend"
                 name="Spend ($)"
-                fill="#2563eb"
+                fill={spendColor}
                 radius={[4, 4, 0, 0]}
                 barSize={24}
               />

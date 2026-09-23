@@ -1,78 +1,64 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Building2, Save } from "lucide-react";
+import { createClient } from "@/lib/supabase/server";
+import { AgencySettingsForm } from "@/components/settings/AgencySettingsForm";
+import { Card, CardContent } from "@/components/ui/card";
+import { AlertCircle } from "lucide-react";
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  let agency = null;
+  let errorMessage: string | null = null;
+
+  if (!user) {
+    errorMessage = "Authentication required to view settings.";
+  } else {
+    // Get user agency membership
+    const { data: member } = await supabase
+      .from("agency_members")
+      .select("agency_id")
+      .eq("user_id", user.id)
+      .single();
+
+    if (member?.agency_id) {
+      const { data: agencyData } = await supabase
+        .from("agencies")
+        .select("*")
+        .eq("id", member.agency_id)
+        .single();
+
+      agency = agencyData;
+    } else {
+      errorMessage = "No active agency membership found.";
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
-          Agency Settings
+          Agency Settings & Branding
         </h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400">
-          Configure your agency branding, default report preferences, and team settings.
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+          Customize your agency profile, upload your logo, and select brand colors for dynamic white-labeled reports.
         </p>
       </div>
 
-      <div className="grid gap-6 max-w-2xl">
-        <Card className="border-slate-200 dark:border-slate-800">
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Building2 className="h-5 w-5 text-blue-600" />
-              <CardTitle className="text-base font-semibold">Agency Profile</CardTitle>
-            </div>
-            <CardDescription className="text-xs">
-              This information appears on generated PDF reports sent to your clients.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
-                Agency Name
-              </label>
-              <Input defaultValue="Apex Marketing Agency" placeholder="Enter agency name" />
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
-                Website URL
-              </label>
-              <Input defaultValue="https://apexmarketing.example.com" placeholder="https://..." />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
-                  Primary Brand Color
-                </label>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="color"
-                    defaultValue="#0F172A"
-                    className="h-9 w-12 cursor-pointer rounded border border-slate-200 p-1"
-                  />
-                  <Input defaultValue="#0F172A" className="font-mono text-xs" />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
-                  Agency Logo URL
-                </label>
-                <Input defaultValue="https://apexmarketing.example.com/logo.png" placeholder="https://..." />
-              </div>
-            </div>
-
-            <div className="pt-2 flex justify-end">
-              <Button size="sm" className="gap-2 bg-blue-600 hover:bg-blue-700 text-white">
-                <Save className="h-4 w-4" />
-                Save Changes
-              </Button>
-            </div>
+      {errorMessage || !agency ? (
+        <Card className="border-red-200 bg-red-50/50 p-6 dark:border-red-900/50 dark:bg-red-950/20 max-w-2xl">
+          <CardContent className="flex items-center gap-3 p-0 text-red-900 dark:text-red-200">
+            <AlertCircle className="h-5 w-5 shrink-0 text-red-600 dark:text-red-400" />
+            <p className="text-sm font-medium">
+              {errorMessage || "Failed to load agency settings."}
+            </p>
           </CardContent>
         </Card>
-      </div>
+      ) : (
+        <AgencySettingsForm agency={agency} />
+      )}
     </div>
   );
 }
