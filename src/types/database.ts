@@ -16,6 +16,11 @@ export interface Database {
           logo_url: string | null;
           primary_color: string | null;
           website: string | null;
+          stripe_customer_id: string | null;
+          stripe_subscription_id: string | null;
+          plan_tier: string;
+          plan_status: string;
+          current_period_end: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -25,6 +30,11 @@ export interface Database {
           logo_url?: string | null;
           primary_color?: string | null;
           website?: string | null;
+          stripe_customer_id?: string | null;
+          stripe_subscription_id?: string | null;
+          plan_tier?: string;
+          plan_status?: string;
+          current_period_end?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -34,6 +44,11 @@ export interface Database {
           logo_url?: string | null;
           primary_color?: string | null;
           website?: string | null;
+          stripe_customer_id?: string | null;
+          stripe_subscription_id?: string | null;
+          plan_tier?: string;
+          plan_status?: string;
+          current_period_end?: string | null;
           created_at?: string;
           updated_at?: string;
         };

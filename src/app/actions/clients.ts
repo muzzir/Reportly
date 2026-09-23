@@ -45,6 +45,29 @@ export async function createClientAction(input: Partial<ClientInput>): Promise<{
     return { error: `${issue.path.join(".")}: ${issue.message}` };
   }
 
+  // Enforce Free plan tier limit (Max 1 client for Free plan)
+  const { data: agency } = await supabase
+    .from("agencies")
+    .select("plan_tier, plan_status")
+    .eq("id", agencyId)
+    .single();
+
+  const isPro = agency?.plan_tier === "pro" && agency?.plan_status === "active";
+
+  if (!isPro) {
+    const { count, error: countError } = await supabase
+      .from("clients")
+      .select("id", { count: "exact", head: true })
+      .eq("agency_id", agencyId);
+
+    if (!countError && (count || 0) >= 1) {
+      return {
+        error:
+          "Free Plan Limit Reached: The Free plan is limited to 1 client account. Please upgrade to Pro in Billing Settings to add unlimited clients.",
+      };
+    }
+  }
+
   const { data, error } = await supabase
     .from("clients")
     .insert(parseResult.data)
