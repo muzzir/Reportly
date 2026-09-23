@@ -3,9 +3,8 @@ import { notFound } from "next/navigation";
 import { getClientMetrics } from "@/lib/queries/metrics";
 import { createClient } from "@/lib/supabase/server";
 import { ReportViewWrapper } from "@/components/reports/ReportViewWrapper";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, BarChart3, Plug } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
+import { ArrowLeft, BarChart3 } from "lucide-react";
 import { DateRangePicker } from "@/components/reports/DateRangePicker";
 
 interface ClientReportsPageProps {
@@ -93,28 +92,11 @@ export default async function ClientReportsPage({
             </div>
           </div>
 
-          <Card className="border-dashed border-slate-300 p-12 text-center dark:border-slate-800">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-500 dark:bg-slate-800">
-              <BarChart3 className="h-6 w-6" />
-            </div>
-            <h3 className="mt-4 text-base font-semibold text-slate-900 dark:text-slate-100">
-              No marketing metrics available
-            </h3>
-            <p className="mt-1 text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
-              No metrics were found for {client.name} between{" "}
-              <strong>{metricsData.startDate}</strong> and <strong>{metricsData.endDate}</strong>.
-              Connect marketing ad platforms and trigger a sync, or change your date filter range.
-            </p>
-
-            <div className="mt-6 flex items-center justify-center gap-3">
-              <Link href={`/dashboard/clients/${clientId}/integrations`}>
-                <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white gap-2">
-                  <Plug className="h-4 w-4" />
-                  Manage Integrations & Sync
-                </Button>
-              </Link>
-            </div>
-          </Card>
+          <EmptyState
+            icon={BarChart3}
+            title="No marketing metrics found for this date range"
+            description={`No metrics were found for ${client.name} between ${metricsData.startDate} and ${metricsData.endDate}. Connect data sources or adjust your date filter range.`}
+          />
         </div>
       ) : (
         <ReportViewWrapper

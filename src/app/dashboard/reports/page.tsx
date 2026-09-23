@@ -5,18 +5,32 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/empty-state";
 import { CreateReportDialog } from "@/components/reports/create-report-dialog";
 import { getReportsAction, ReportWithClient, deleteReportAction } from "@/app/actions/reports";
 import { getClientsAction } from "@/app/actions/clients";
 import { Client } from "@/types";
-import { FileText, Plus, Calendar, Loader2, Trash2, ArrowRight } from "lucide-react";
+import { FileText, Plus, Calendar, Loader2, Trash2, ArrowRight, ShieldAlert } from "lucide-react";
+import { ToastBanner, ToastMessage } from "@/components/ui/toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function ReportsPage() {
   const [reports, setReports] = useState<ReportWithClient[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [reportToDelete, setReportToDelete] = useState<ReportWithClient | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const [toast, setToast] = useState<ToastMessage | null>(null);
 
   const fetchData = useCallback(async () => {
     const [repRes, cliRes] = await Promise.all([getReportsAction(), getClientsAction()]);
@@ -41,16 +55,44 @@ export default function ReportsPage() {
     };
   }, []);
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this report?")) return;
-    setDeletingId(id);
-    await deleteReportAction(id);
-    setDeletingId(null);
-    fetchData();
+  const confirmDelete = async () => {
+    if (!reportToDelete) return;
+    setDeleting(true);
+    try {
+      const res = await deleteReportAction(reportToDelete.id);
+      if (res.error) {
+        setToast({
+          id: Date.now().toString(),
+          type: "error",
+          title: "Delete Failed",
+          description: res.error,
+        });
+      } else {
+        setToast({
+          id: Date.now().toString(),
+          type: "success",
+          title: "Report Deleted",
+          description: `"${reportToDelete.title}" has been deleted.`,
+        });
+        setReportToDelete(null);
+        fetchData();
+      }
+    } catch {
+      setToast({
+        id: Date.now().toString(),
+        type: "error",
+        title: "Delete Failed",
+        description: "An unexpected error occurred while deleting the report.",
+      });
+    } finally {
+      setDeleting(false);
+    }
   };
 
   return (
     <div className="space-y-6">
+      <ToastBanner message={toast} onClose={() => setToast(null)} />
+
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
@@ -82,22 +124,13 @@ export default function ReportsPage() {
           <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
         </div>
       ) : reports.length === 0 ? (
-        <Card className="border-dashed border-slate-300 p-12 text-center dark:border-slate-800">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-500 dark:bg-slate-800">
-            <FileText className="h-6 w-6" />
-          </div>
-          <h3 className="mt-4 text-base font-semibold">No reports generated yet</h3>
-          <p className="mt-1 text-xs text-slate-500 max-w-sm mx-auto">
-            Create your first performance audit report to aggregate multi-channel marketing metrics.
-          </p>
-          <Button
-            onClick={() => setDialogOpen(true)}
-            size="sm"
-            className="mt-4 bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            Create First Report
-          </Button>
-        </Card>
+        <EmptyState
+          icon={FileText}
+          title="No marketing reports generated yet"
+          description="Create your first performance audit report to aggregate multi-channel marketing data for your clients."
+          actionLabel="Create First Report"
+          onAction={() => setDialogOpen(true)}
+        />
       ) : (
         <Card className="border-slate-200 dark:border-slate-800">
           <CardHeader>
@@ -149,14 +182,9 @@ export default function ReportsPage() {
                       variant="ghost"
                       size="sm"
                       className="h-8 w-8 p-0 text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950"
-                      onClick={() => handleDelete(report.id)}
-                      disabled={deletingId === report.id}
+                      onClick={() => setReportToDelete(report)}
                     >
-                      {deletingId === report.id ? (
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      ) : (
-                        <Trash2 className="h-3.5 w-3.5" />
-                      )}
+                      <Trash2 className="h-3.5 w-3.5" />
                     </Button>
                   </div>
                 </div>
@@ -165,6 +193,40 @@ export default function ReportsPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Destructive Action Guard AlertDialog */}
+      <AlertDialog open={!!reportToDelete} onOpenChange={(open) => !open && setReportToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-red-600">
+              <ShieldAlert className="h-5 w-5" />
+              Delete Marketing Report
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete{" "}
+              <strong className="text-slate-900 dark:text-slate-100">{reportToDelete?.title}</strong>?
+              This will permanently remove the generated report and any associated PDF links.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              disabled={deleting}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {deleting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete Report"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

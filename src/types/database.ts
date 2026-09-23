@@ -21,6 +21,7 @@ export interface Database {
           plan_tier: string;
           plan_status: string;
           current_period_end: string | null;
+          onboarding_completed: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -35,6 +36,7 @@ export interface Database {
           plan_tier?: string;
           plan_status?: string;
           current_period_end?: string | null;
+          onboarding_completed?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -49,6 +51,7 @@ export interface Database {
           plan_tier?: string;
           plan_status?: string;
           current_period_end?: string | null;
+          onboarding_completed?: boolean;
           created_at?: string;
           updated_at?: string;
         };

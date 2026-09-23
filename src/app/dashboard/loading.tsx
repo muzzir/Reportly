@@ -1,29 +1,46 @@
+import { Skeleton } from "@/components/ui/skeleton";
+
 export default function DashboardLoading() {
   return (
-    <div className="space-y-8 animate-pulse">
+    <div className="space-y-6">
       {/* Header Skeleton */}
       <div className="space-y-2">
-        <div className="h-8 w-64 rounded bg-slate-200 dark:bg-slate-800" />
-        <div className="h-4 w-96 rounded bg-slate-200 dark:bg-slate-800" />
+        <Skeleton className="h-8 w-64" />
+        <Skeleton className="h-4 w-96" />
       </div>
 
-      {/* KPI Cards Skeleton */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {[1, 2, 3, 4].map((i) => (
-          <div
-            key={i}
-            className="h-28 rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-950"
-          >
-            <div className="h-4 w-24 rounded bg-slate-200 dark:bg-slate-800 mb-4" />
-            <div className="h-8 w-16 rounded bg-slate-200 dark:bg-slate-800" />
+      {/* KPI Cards Grid */}
+      <div className="grid gap-4 md:grid-cols-4">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="rounded-xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-slate-900 space-y-3">
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="h-8 w-8 rounded-lg" />
+            </div>
+            <Skeleton className="h-8 w-20" />
+            <Skeleton className="h-3 w-36" />
           </div>
         ))}
       </div>
 
-      {/* Activity Grid Skeleton */}
-      <div className="grid gap-6 md:grid-cols-2">
-        <div className="h-64 rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-950" />
-        <div className="h-64 rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-800 dark:bg-slate-950" />
+      {/* Main Content Area Skeletons */}
+      <div className="grid gap-6 md:grid-cols-3">
+        <div className="md:col-span-2 rounded-xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-slate-900 space-y-4">
+          <Skeleton className="h-6 w-48" />
+          <Skeleton className="h-64 w-full rounded-lg" />
+        </div>
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-slate-900 space-y-4">
+          <Skeleton className="h-6 w-36" />
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+              <div className="space-y-1">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-3 w-20" />
+              </div>
+              <Skeleton className="h-6 w-16 rounded-full" />
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
