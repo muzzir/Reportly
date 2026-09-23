@@ -75,17 +75,23 @@ export async function signUp(formData: FormData): Promise<{ error?: string }> {
     return { error: "User registered, but failed to create agency profile." };
   }
 
-  // 3. Create Agency Member Owner Relationship
-  const { error: memberError } = await supabase
-    .from("agency_members")
+  // 3. Create Agency User & Member Owner Relationship
+  const { error: userError } = await supabase
+    .from("agency_users")
     .insert({
       agency_id: agencyData.id,
       user_id: authData.user.id,
       role: "owner",
     });
 
-  if (memberError) {
-    console.error("Agency member creation error:", memberError);
+  if (userError) {
+    console.error("Agency user creation error:", userError);
+    // Fallback attempt to agency_members if trigger didn't handle it
+    await supabase.from("agency_members").insert({
+      agency_id: agencyData.id,
+      user_id: authData.user.id,
+      role: "owner",
+    });
   }
 
   redirect("/dashboard");

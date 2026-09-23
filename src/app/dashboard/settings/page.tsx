@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { AgencySettingsForm } from "@/components/settings/AgencySettingsForm";
+import { SettingsNavTabs } from "@/components/settings/SettingsNavTabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { AlertCircle } from "lucide-react";
 
@@ -11,23 +12,38 @@ export default async function SettingsPage() {
   } = await supabase.auth.getUser();
 
   let agency = null;
+  let userRole: string | null = null;
   let errorMessage: string | null = null;
 
   if (!user) {
     errorMessage = "Authentication required to view settings.";
   } else {
-    // Get user agency membership
+    // Get user agency membership from agency_users or agency_members
     const { data: member } = await supabase
-      .from("agency_members")
-      .select("agency_id")
+      .from("agency_users")
+      .select("agency_id, role")
       .eq("user_id", user.id)
-      .single();
+      .maybeSingle();
 
-    if (member?.agency_id) {
+    let activeAgencyId = member?.agency_id;
+    userRole = member?.role || null;
+
+    if (!activeAgencyId) {
+      const { data: fallback } = await supabase
+        .from("agency_members")
+        .select("agency_id, role")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      activeAgencyId = fallback?.agency_id;
+      userRole = fallback?.role || null;
+    }
+
+    if (activeAgencyId) {
       const { data: agencyData } = await supabase
         .from("agencies")
         .select("*")
-        .eq("id", member.agency_id)
+        .eq("id", activeAgencyId)
         .single();
 
       agency = agencyData;
@@ -40,12 +56,14 @@ export default async function SettingsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
-          Agency Settings & Branding
+          Agency Settings
         </h1>
         <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
           Customize your agency profile, upload your logo, and select brand colors for dynamic white-labeled reports.
         </p>
       </div>
+
+      <SettingsNavTabs userRole={userRole} />
 
       {errorMessage || !agency ? (
         <Card className="border-red-200 bg-red-50/50 p-6 dark:border-red-900/50 dark:bg-red-950/20 max-w-2xl">

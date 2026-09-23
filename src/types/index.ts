@@ -5,6 +5,20 @@ export type AgencyInsert = Database["public"]["Tables"]["agencies"]["Insert"];
 export type AgencyUpdate = Database["public"]["Tables"]["agencies"]["Update"];
 
 export type AgencyMember = Database["public"]["Tables"]["agency_members"]["Row"];
+export type AgencyUser = Database["public"]["Tables"]["agency_users"]["Row"];
+export type AgencyUserInsert = Database["public"]["Tables"]["agency_users"]["Insert"];
+export type AgencyUserUpdate = Database["public"]["Tables"]["agency_users"]["Update"];
+
+export interface TeamMemberDetails {
+  id: string;
+  agency_id: string;
+  user_id: string;
+  role: UserRole;
+  created_at: string;
+  email: string;
+  full_name?: string;
+  is_current_user?: boolean;
+}
 
 export type Client = Database["public"]["Tables"]["clients"]["Row"];
 export type ClientInsert = Database["public"]["Tables"]["clients"]["Insert"];

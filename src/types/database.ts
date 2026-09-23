@@ -86,6 +86,38 @@ export interface Database {
           }
         ];
       };
+      agency_users: {
+        Row: {
+          id: string;
+          agency_id: string;
+          user_id: string;
+          role: "owner" | "admin" | "member";
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          agency_id: string;
+          user_id: string;
+          role?: "owner" | "admin" | "member";
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          agency_id?: string;
+          user_id?: string;
+          role?: "owner" | "admin" | "member";
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "agency_users_agency_id_fkey";
+            columns: ["agency_id"];
+            isOneToOne: false;
+            referencedRelation: "agencies";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
       clients: {
         Row: {
           id: string;
@@ -326,6 +358,10 @@ export interface Database {
     Functions: {
       get_user_agency_id: {
         Args: { user_uuid: string };
+        Returns: string;
+      };
+      get_user_role: {
+        Args: { user_uuid: string; agency_uuid: string };
         Returns: string;
       };
     };
