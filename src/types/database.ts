@@ -84,6 +84,8 @@ export interface Database {
           auto_report_enabled: boolean;
           auto_report_emails: string[] | null;
           last_report_sent_at: string | null;
+          public_token: string;
+          is_public_sharing_enabled: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -99,6 +101,8 @@ export interface Database {
           auto_report_enabled?: boolean;
           auto_report_emails?: string[] | null;
           last_report_sent_at?: string | null;
+          public_token?: string;
+          is_public_sharing_enabled?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -114,6 +118,8 @@ export interface Database {
           auto_report_enabled?: boolean;
           auto_report_emails?: string[] | null;
           last_report_sent_at?: string | null;
+          public_token?: string;
+          is_public_sharing_enabled?: boolean;
           created_at?: string;
           updated_at?: string;
         };

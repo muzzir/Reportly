@@ -8,8 +8,9 @@ import { CampaignTable } from "@/components/reports/CampaignTable";
 import { DateRangePicker } from "@/components/reports/DateRangePicker";
 import { DownloadPDFButton } from "@/components/reports/DownloadPDFButton";
 import { SendReportDialog } from "@/components/reports/SendReportDialog";
+import { ShareReportDialog } from "@/components/reports/ShareReportDialog";
 import { Button } from "@/components/ui/button";
-import { Mail } from "lucide-react";
+import { Mail, Share2 } from "lucide-react";
 import { AggregateKPIs, CampaignMetricRow, TimeSeriesMetricPoint } from "@/lib/queries/metrics";
 
 interface AgencyBranding {
@@ -28,6 +29,8 @@ interface ReportViewWrapperProps {
   kpis: AggregateKPIs;
   timeSeries: TimeSeriesMetricPoint[];
   campaigns: CampaignMetricRow[];
+  publicToken?: string;
+  isPublicSharingEnabled?: boolean;
 }
 
 export function ReportViewWrapper({
@@ -39,9 +42,14 @@ export function ReportViewWrapper({
   kpis,
   timeSeries,
   campaigns,
+  publicToken = "",
+  isPublicSharingEnabled = true,
 }: ReportViewWrapperProps) {
   const reportRef = useRef<HTMLDivElement>(null);
   const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
+  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
+  const [currentToken, setCurrentToken] = useState(publicToken);
+  const [currentSharingEnabled, setCurrentSharingEnabled] = useState(isPublicSharingEnabled);
 
   return (
     <div className="space-y-6">
@@ -73,6 +81,18 @@ export function ReportViewWrapper({
             <Mail className="h-3.5 w-3.5" />
             <span>Send Email</span>
           </Button>
+
+          {currentToken && (
+            <Button
+              onClick={() => setIsShareDialogOpen(true)}
+              variant="outline"
+              size="sm"
+              className="gap-2 text-xs text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700"
+            >
+              <Share2 className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+              <span>Share</span>
+            </Button>
+          )}
         </div>
       </div>
 
@@ -117,6 +137,20 @@ export function ReportViewWrapper({
         endDate={endDate}
         agencyName={agency.name}
       />
+
+      {/* Share Report Dialog Modal */}
+      {currentToken && (
+        <ShareReportDialog
+          isOpen={isShareDialogOpen}
+          onOpenChange={setIsShareDialogOpen}
+          clientId={clientId}
+          clientName={clientName}
+          publicToken={currentToken}
+          isPublicSharingEnabled={currentSharingEnabled}
+          onTokenRegenerated={setCurrentToken}
+          onSharingToggled={setCurrentSharingEnabled}
+        />
+      )}
     </div>
   );
 }

@@ -119,3 +119,49 @@ export async function updateClientAutomationAction(
 
   return { data: data as Client };
 }
+
+export async function updateClientShareStatusAction(
+  clientId: string,
+  is_public_sharing_enabled: boolean
+): Promise<{ data?: Client; error?: string }> {
+  const supabase = createClient();
+
+  const { data, error } = await supabase
+    .from("clients")
+    .update({
+      is_public_sharing_enabled,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", clientId)
+    .select()
+    .single();
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  return { data: data as Client };
+}
+
+export async function regeneratePublicTokenAction(
+  clientId: string
+): Promise<{ data?: Client; error?: string }> {
+  const supabase = createClient();
+  const newPublicToken = crypto.randomUUID();
+
+  const { data, error } = await supabase
+    .from("clients")
+    .update({
+      public_token: newPublicToken,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", clientId)
+    .select()
+    .single();
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  return { data: data as Client };
+}

@@ -126,6 +126,8 @@ export default async function ClientReportsPage({
           kpis={metricsData.kpis}
           timeSeries={metricsData.timeSeries}
           campaigns={metricsData.campaigns}
+          publicToken={client.public_token}
+          isPublicSharingEnabled={client.is_public_sharing_enabled}
         />
       )}
     </div>
