@@ -3,6 +3,7 @@ import { Resend } from "resend";
 import { createClient } from "@/lib/supabase/server";
 import { getClientMetrics } from "@/lib/queries/metrics";
 import { generateMonthlySummaryEmailHtml } from "@/lib/email/MonthlySummaryEmail";
+import { logger } from "@/lib/logger";
 
 export async function GET(request: Request) {
   try {
@@ -149,9 +150,11 @@ export async function GET(request: Request) {
       ),
     });
   } catch (err) {
+    const errorMsg = err instanceof Error ? err.message : "Cron execution failed.";
+    await logger.error("monthly_cron", errorMsg);
     return NextResponse.json(
       {
-        error: err instanceof Error ? err.message : "Cron execution failed.",
+        error: errorMsg,
       },
       { status: 500 }
     );

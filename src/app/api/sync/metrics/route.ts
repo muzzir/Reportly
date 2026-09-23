@@ -11,6 +11,7 @@ import {
   normalizeMetaAdsData,
   normalizeGA4Data,
 } from "@/lib/integrations/normalizer";
+import { logger } from "@/lib/logger";
 
 export async function POST(req: Request) {
   try {
@@ -174,6 +175,7 @@ export async function POST(req: Request) {
   } catch (error: unknown) {
     const errMsg = error instanceof Error ? error.message : "Internal server error";
     console.error("Unhandled error in /api/sync/metrics:", error);
+    await logger.error("metrics_sync", errMsg);
     return NextResponse.json({ error: errMsg }, { status: 500 });
   }
 }

@@ -4,6 +4,7 @@ import { OAUTH_PROVIDERS, decodeOAuthState } from "@/lib/oauth/config";
 import { oauthCallbackSchema } from "@/lib/validations/oauth";
 import { encrypt } from "@/lib/security/encryption";
 import { IntegrationProvider } from "@/types";
+import { logger } from "@/lib/logger";
 
 export async function GET(
   request: NextRequest,
@@ -151,6 +152,7 @@ export async function GET(
       if (!tokenResponse.ok) {
         const errText = await tokenResponse.text();
         console.error(`Token exchange failed for ${provider}:`, errText);
+        await logger.error("oauth_callback", `Token exchange failed for ${provider}: ${errText}`, { provider });
         return NextResponse.redirect(`${redirectTarget}?error=token_exchange_failed`);
       }
 
@@ -165,7 +167,9 @@ export async function GET(
       accountName = `${providerConfig.name} Account`;
       accountEmail = user.email || "connected@agency.com";
     } catch (err) {
+      const errMessage = err instanceof Error ? err.message : "OAuth error";
       console.error(`Unexpected error during OAuth callback for ${provider}:`, err);
+      await logger.error("oauth_callback", `OAuth callback error for ${provider}: ${errMessage}`, { provider });
       return NextResponse.redirect(`${redirectTarget}?error=oauth_processing_error`);
     }
   }

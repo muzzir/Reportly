@@ -354,6 +354,33 @@ export interface Database {
           }
         ];
       };
+      platform_logs: {
+        Row: {
+          id: string;
+          level: "info" | "warning" | "error" | "critical";
+          source: string;
+          message: string;
+          metadata: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          level?: "info" | "warning" | "error" | "critical";
+          source: string;
+          message: string;
+          metadata?: Json;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          level?: "info" | "warning" | "error" | "critical";
+          source?: string;
+          message?: string;
+          metadata?: Json;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;

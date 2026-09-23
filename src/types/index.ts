@@ -35,6 +35,8 @@ export type Report = Database["public"]["Tables"]["reports"]["Row"];
 export type ReportInsert = Database["public"]["Tables"]["reports"]["Insert"];
 export type ReportUpdate = Database["public"]["Tables"]["reports"]["Update"];
 
+export type PlatformLog = Database["public"]["Tables"]["platform_logs"]["Row"];
+
 export type IntegrationProvider = "google_ads" | "meta_ads" | "ga4";
 export type ReportStatus = "draft" | "generating" | "published" | "archived";
 export type UserRole = "owner" | "admin" | "member";

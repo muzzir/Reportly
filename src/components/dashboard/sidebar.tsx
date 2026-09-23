@@ -104,8 +104,8 @@ export function Sidebar() {
         <div className="flex items-center gap-3 rounded-lg border border-slate-800 bg-slate-950/50 p-3">
           <Sparkles className="h-5 w-5 text-amber-400 shrink-0" />
           <div className="flex flex-col">
-            <span className="text-xs font-medium text-slate-200">Phase 13 Completed</span>
-            <span className="text-[11px] text-slate-400">Onboarding & UX polished</span>
+            <span className="text-xs font-medium text-slate-200">Phase 14 Completed</span>
+            <span className="text-[11px] text-slate-400">Super Admin & Logging active</span>
           </div>
         </div>
       </div>

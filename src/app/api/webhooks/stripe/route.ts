@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { stripe, isStripeConfigured } from "@/lib/stripe/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { logger } from "@/lib/logger";
 
 export async function POST(request: Request) {
   const body = await request.text();
@@ -135,7 +136,9 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ received: true }, { status: 200 });
   } catch (err) {
+    const errorMsg = err instanceof Error ? err.message : "Webhook processing failed";
     console.error("Stripe webhook execution error:", err);
+    await logger.error("stripe_webhook", errorMsg, { eventType: event?.type });
     return NextResponse.json(
       { error: "Webhook processing failed" },
       { status: 500 }
