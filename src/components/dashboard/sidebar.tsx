@@ -8,7 +8,6 @@ import {
   FileBarChart2,
   Plug,
   Settings,
-  Sparkles,
   BarChart3,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
@@ -45,17 +44,17 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="flex h-screen w-64 flex-col border-r border-slate-800 bg-slate-900 text-slate-100">
+    <aside className="flex h-screen w-64 flex-col border-r border-border bg-card text-card-foreground">
       {/* Brand Header */}
-      <div className="flex h-16 items-center gap-3 border-b border-slate-800 px-6">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-white shadow-xs">
+      <div className="flex h-16 items-center gap-3 border-b border-border px-6">
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-xs">
           <BarChart3 className="h-5 w-5" />
         </div>
         <div className="flex flex-col">
-          <span className="text-base font-bold tracking-tight text-white">
+          <span className="text-base font-bold tracking-tight text-foreground">
             Reportly
           </span>
-          <span className="text-[10px] font-medium tracking-wider text-slate-400 uppercase">
+          <span className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase">
             Agency Edition
           </span>
         </div>
@@ -63,7 +62,7 @@ export function Sidebar() {
 
       {/* Navigation */}
       <div className="flex-1 space-y-1 px-3 py-4">
-        <div className="px-3 py-2 text-xs font-semibold tracking-wider text-slate-400 uppercase">
+        <div className="px-3 py-2 text-xs font-semibold tracking-wider text-muted-foreground uppercase">
           Navigation
         </div>
         <nav className="space-y-1">
@@ -82,14 +81,14 @@ export function Sidebar() {
                 className={cn(
                   "group flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
                   isActive
-                    ? "bg-slate-800 text-white"
-                    : "text-slate-400 hover:bg-slate-800/60 hover:text-slate-200"
+                    ? "bg-accent text-accent-foreground font-semibold"
+                    : "text-muted-foreground hover:bg-accent/60 hover:text-foreground"
                 )}
               >
                 <Icon
                   className={cn(
                     "h-4 w-4 shrink-0 transition-colors",
-                    isActive ? "text-blue-400" : "text-slate-400 group-hover:text-slate-300"
+                    isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
                   )}
                 />
                 <span>{item.name}</span>
@@ -97,17 +96,6 @@ export function Sidebar() {
             );
           })}
         </nav>
-      </div>
-
-      {/* Footer / Status */}
-      <div className="border-t border-slate-800 p-4">
-        <div className="flex items-center gap-3 rounded-lg border border-slate-800 bg-slate-950/50 p-3">
-          <Sparkles className="h-5 w-5 text-amber-400 shrink-0" />
-          <div className="flex flex-col">
-            <span className="text-xs font-medium text-slate-200">Phase 14 Completed</span>
-            <span className="text-[11px] text-slate-400">Super Admin & Logging active</span>
-          </div>
-        </div>
       </div>
     </aside>
   );

@@ -1,7 +1,9 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
+import { logger } from "@/lib/logger";
 
 export interface OnboardingData {
   agencyName: string;
@@ -15,7 +17,7 @@ export interface OnboardingData {
 }
 
 /**
- * Completes onboarding for a new agency: updates agency profile, creates first client, and sets onboarding_completed = true.
+ * Completes onboarding for a new agency: updates agency profile, creates owner relationships, and inserts first client.
  */
 export async function completeOnboardingAction(
   data: OnboardingData
@@ -50,8 +52,11 @@ export async function completeOnboardingAction(
       return { success: false, error: "Authentication required." };
     }
 
-    // Retrieve active agency membership
-    const { data: member } = await supabase
+    // Use Admin Client to bypass bootstrapping RLS deadlocks for new agency creation
+    const adminClient = createAdminClient();
+
+    // 1. Retrieve or create Agency
+    const { data: member } = await adminClient
       .from("agency_users")
       .select("agency_id")
       .eq("user_id", user.id)
@@ -60,7 +65,7 @@ export async function completeOnboardingAction(
     let agencyId = member?.agency_id;
 
     if (!agencyId) {
-      const { data: fallback } = await supabase
+      const { data: fallback } = await adminClient
         .from("agency_members")
         .select("agency_id")
         .eq("user_id", user.id)
@@ -70,51 +75,73 @@ export async function completeOnboardingAction(
     }
 
     if (!agencyId) {
-      // Create new agency if none exists
-      const { data: newAgency, error: createError } = await supabase
+      // Create new agency
+      const { data: newAgency, error: createAgencyError } = await adminClient
         .from("agencies")
         .insert({
           name: agencyName.trim(),
-          logo_url: logoUrl || null,
+          logo_url: logoUrl?.trim() || null,
           primary_color: primaryColor,
-          website: website || null,
+          website: website?.trim() || null,
           onboarding_completed: true,
         })
-        .select()
+        .select("id")
         .single();
 
-      if (createError || !newAgency) {
-        return { success: false, error: "Failed to create agency profile." };
+      if (createAgencyError || !newAgency) {
+        console.error("Onboarding agency creation error:", createAgencyError);
+        await logger.error("onboarding", `Agency creation failed: ${createAgencyError?.message}`);
+        return { success: false, error: `Agency creation failed: ${createAgencyError?.message || "Unknown error"}` };
       }
 
       agencyId = newAgency.id;
-
-      // Associate user
-      await supabase.from("agency_users").insert({
-        agency_id: agencyId,
-        user_id: user.id,
-        role: "owner",
-      });
     } else {
-      // Update existing agency profile
-      const { error: updateError } = await supabase
+      // Update existing agency
+      const { error: updateAgencyError } = await adminClient
         .from("agencies")
         .update({
           name: agencyName.trim(),
-          logo_url: logoUrl || null,
+          logo_url: logoUrl?.trim() || null,
           primary_color: primaryColor,
-          website: website || null,
+          website: website?.trim() || null,
           onboarding_completed: true,
         })
         .eq("id", agencyId);
 
-      if (updateError) {
-        return { success: false, error: updateError.message };
+      if (updateAgencyError) {
+        console.error("Onboarding agency update error:", updateAgencyError);
+        await logger.error("onboarding", `Agency update failed: ${updateAgencyError.message}`);
+        return { success: false, error: `Agency update failed: ${updateAgencyError.message}` };
       }
     }
 
-    // Create First Client
-    const { error: clientError } = await supabase.from("clients").insert({
+    // 2. Ensure owner relationships in agency_users and agency_members
+    const { error: userRelError } = await adminClient
+      .from("agency_users")
+      .upsert({
+        agency_id: agencyId,
+        user_id: user.id,
+        role: "owner",
+      }, { onConflict: "agency_id,user_id" });
+
+    if (userRelError) {
+      console.error("Onboarding agency_users upsert error:", userRelError);
+    }
+
+    const { error: memberRelError } = await adminClient
+      .from("agency_members")
+      .upsert({
+        agency_id: agencyId,
+        user_id: user.id,
+        role: "owner",
+      }, { onConflict: "agency_id,user_id" });
+
+    if (memberRelError) {
+      console.error("Onboarding agency_members upsert error:", memberRelError);
+    }
+
+    // 3. Create First Client
+    const { error: clientError } = await adminClient.from("clients").insert({
       agency_id: agencyId,
       name: clientName.trim(),
       industry: clientIndustry.trim(),
@@ -123,7 +150,9 @@ export async function completeOnboardingAction(
     });
 
     if (clientError) {
-      console.error("Client creation during onboarding failed:", clientError);
+      console.error("Onboarding client creation error:", clientError);
+      await logger.error("onboarding", `Client creation failed: ${clientError.message}`);
+      return { success: false, error: `First client creation failed: ${clientError.message}` };
     }
 
     revalidatePath("/dashboard");
@@ -132,6 +161,7 @@ export async function completeOnboardingAction(
     return { success: true };
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Failed to complete onboarding.";
+    console.error("Onboarding unhandled exception:", message);
     return { success: false, error: message };
   }
 }

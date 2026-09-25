@@ -5,6 +5,7 @@ import { oauthCallbackSchema } from "@/lib/validations/oauth";
 import { encrypt } from "@/lib/security/encryption";
 import { IntegrationProvider } from "@/types";
 import { logger } from "@/lib/logger";
+import { getAppBaseUrl } from "@/lib/utils/url";
 
 export async function GET(
   request: NextRequest,
@@ -18,7 +19,7 @@ export async function GET(
     return NextResponse.json({ error: "Invalid integration provider" }, { status: 400 });
   }
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin;
+  const baseUrl = getAppBaseUrl();
 
   // 1. Extract & validate callback parameters using Zod
   const searchParamsObj = Object.fromEntries(request.nextUrl.searchParams.entries());

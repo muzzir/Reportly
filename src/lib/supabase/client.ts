@@ -1,24 +1,32 @@
 import { createBrowserClient as createBrowserSupabaseClient } from "@supabase/ssr";
 import { Database } from "@/types/database";
 
+/**
+ * Sanitizes raw environment variable strings by stripping leading/trailing whitespace
+ * and surrounding quotes (" or ').
+ */
+export function sanitizeEnvVal(val?: string): string {
+  if (!val || typeof val !== "string") return "";
+  return val.trim().replace(/^["']|["']$/g, "").trim();
+}
+
 export function getSupabaseUrl(): string {
   const envUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  if (!envUrl || typeof envUrl !== "string") {
+  const sanitized = sanitizeEnvVal(envUrl).replace(/\/rest\/v1\/?$/, "").replace(/\/$/, "");
+  if (!sanitized || (!sanitized.startsWith("http://") && !sanitized.startsWith("https://"))) {
     return "https://placeholder-project.supabase.co";
   }
-  const trimmed = envUrl.trim().replace(/\/rest\/v1\/?$/, "").replace(/\/$/, "");
-  if (!trimmed || (!trimmed.startsWith("http://") && !trimmed.startsWith("https://"))) {
-    return "https://placeholder-project.supabase.co";
-  }
-  return trimmed;
+  return sanitized;
 }
 
 export function getSupabaseAnonKey(): string {
   const envKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!envKey || typeof envKey !== "string" || !envKey.trim()) {
-    return "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.placeholder";
-  }
-  return envKey.trim();
+  return sanitizeEnvVal(envKey) || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.placeholder";
+}
+
+export function getSupabaseServiceRoleKey(): string {
+  const envKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  return sanitizeEnvVal(envKey);
 }
 
 /**

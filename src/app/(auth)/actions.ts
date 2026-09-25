@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { getAppBaseUrl } from "@/lib/utils/url";
 import { redirect } from "next/navigation";
 
 /**
@@ -41,12 +42,14 @@ export async function signUp(formData: FormData): Promise<{ error?: string }> {
   }
 
   const supabase = await createClient();
+  const baseUrl = getAppBaseUrl();
 
-  // 1. Sign up user with Supabase Auth
+  // 1. Sign up user with Supabase Auth including PKCE callback redirect URL
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email,
     password,
     options: {
+      emailRedirectTo: `${baseUrl}/auth/callback`,
       data: {
         agency_name: agencyName,
       },
@@ -66,6 +69,7 @@ export async function signUp(formData: FormData): Promise<{ error?: string }> {
     .from("agencies")
     .insert({
       name: agencyName,
+      onboarding_completed: false,
     })
     .select()
     .single();
@@ -86,7 +90,6 @@ export async function signUp(formData: FormData): Promise<{ error?: string }> {
 
   if (userError) {
     console.error("Agency user creation error:", userError);
-    // Fallback attempt to agency_members if trigger didn't handle it
     await supabase.from("agency_members").insert({
       agency_id: agencyData.id,
       user_id: authData.user.id,
@@ -94,7 +97,7 @@ export async function signUp(formData: FormData): Promise<{ error?: string }> {
     });
   }
 
-  redirect("/dashboard");
+  redirect("/onboarding");
 }
 
 /**

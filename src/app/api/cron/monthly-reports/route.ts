@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getClientMetrics } from "@/lib/queries/metrics";
 import { generateMonthlySummaryEmailHtml } from "@/lib/email/MonthlySummaryEmail";
 import { logger } from "@/lib/logger";
+import { getAppBaseUrl } from "@/lib/utils/url";
 
 export async function GET(request: Request) {
   try {
@@ -60,7 +61,7 @@ export async function GET(request: Request) {
     const isMockMode =
       !apiKey || apiKey.startsWith("re_your_") || apiKey.startsWith("re_mock");
     const resend = isMockMode ? null : new Resend(apiKey);
-    const appBaseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const appBaseUrl = getAppBaseUrl();
 
     // 4. Batch Process Clients using Promise.allSettled
     const results = await Promise.allSettled(

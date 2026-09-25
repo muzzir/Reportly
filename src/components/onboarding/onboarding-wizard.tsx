@@ -66,6 +66,8 @@ export function OnboardingWizard({ defaultAgencyName }: { defaultAgencyName?: st
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (loading) return; // Prevent double submission
+
     if (!clientName.trim()) {
       setToast({
         id: Date.now().toString(),
@@ -89,13 +91,14 @@ export function OnboardingWizard({ defaultAgencyName }: { defaultAgencyName?: st
         currency,
       });
 
-      if (res.error) {
+      if (res.error || !res.success) {
         setToast({
           id: Date.now().toString(),
           type: "error",
           title: "Onboarding Failed",
-          description: res.error,
+          description: res.error || "Failed to complete setup.",
         });
+        setLoading(false);
       } else {
         setToast({
           id: Date.now().toString(),
@@ -103,10 +106,8 @@ export function OnboardingWizard({ defaultAgencyName }: { defaultAgencyName?: st
           title: "Welcome to Reportly!",
           description: "Your agency workspace has been configured successfully.",
         });
-        setTimeout(() => {
-          router.push("/dashboard");
-          router.refresh();
-        }, 1000);
+        router.push("/dashboard");
+        router.refresh();
       }
     } catch {
       setToast({
@@ -115,7 +116,6 @@ export function OnboardingWizard({ defaultAgencyName }: { defaultAgencyName?: st
         title: "Submission Error",
         description: "An unexpected error occurred while completing onboarding.",
       });
-    } finally {
       setLoading(false);
     }
   };

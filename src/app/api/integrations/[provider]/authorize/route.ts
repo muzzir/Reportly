@@ -3,6 +3,7 @@ import crypto from "crypto";
 import { createClient } from "@/lib/supabase/server";
 import { OAUTH_PROVIDERS, encodeOAuthState } from "@/lib/oauth/config";
 import { IntegrationProvider } from "@/types";
+import { getAppBaseUrl } from "@/lib/utils/url";
 
 export async function GET(
   request: NextRequest,
@@ -57,7 +58,7 @@ export async function GET(
   };
 
   const encodedState = encodeOAuthState(statePayload);
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || request.nextUrl.origin;
+  const baseUrl = getAppBaseUrl();
   const callbackUrl = `${baseUrl}/api/integrations/${provider}/callback`;
 
   // Set CSRF token in HTTP-only cookie

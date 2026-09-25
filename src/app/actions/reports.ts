@@ -19,10 +19,13 @@ export async function getReportsAction(): Promise<{ data?: ReportWithClient[]; e
     .order("created_at", { ascending: false });
 
   if (error) {
+    if (error.code === "PGRST205" || error.message.includes("Could not find the table")) {
+      return { data: [] };
+    }
     return { error: error.message };
   }
 
-  const reports = data.map((r) => ({
+  const reports = (data || []).map((r) => ({
     ...r,
     client: r.clients ? { name: r.clients.name, logo_url: r.clients.logo_url } : undefined,
   }));

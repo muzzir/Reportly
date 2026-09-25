@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { stripe, isStripeConfigured } from "@/lib/stripe/server";
+import { getAppBaseUrl } from "@/lib/utils/url";
 
 export async function createCheckoutSessionAction(): Promise<{
   url?: string | null;
@@ -39,7 +40,7 @@ export async function createCheckoutSessionAction(): Promise<{
       return { error: "Agency profile not found." };
     }
 
-    const appBaseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const appBaseUrl = getAppBaseUrl();
 
     // Developer Mock Mode Fallback if Stripe API keys are unset or using placeholders
     if (!isStripeConfigured()) {
@@ -147,7 +148,7 @@ export async function createPortalSessionAction(): Promise<{
       return { error: "Agency profile not found." };
     }
 
-    const appBaseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const appBaseUrl = getAppBaseUrl();
 
     // Developer Mock Mode Fallback
     if (!isStripeConfigured()) {

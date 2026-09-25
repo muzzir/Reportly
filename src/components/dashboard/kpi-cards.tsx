@@ -7,7 +7,6 @@ interface KPICardsProps {
 }
 
 export function KPICards({ data }: KPICardsProps) {
-  // Placeholder KPI values (structured so real data can replace them easily)
   const metrics = [
     {
       title: "Active Clients",
@@ -15,7 +14,7 @@ export function KPICards({ data }: KPICardsProps) {
       change: "+2 this month",
       icon: Users,
       color: "text-blue-600 dark:text-blue-400",
-      bg: "bg-blue-50 dark:bg-blue-950/50",
+      bg: "bg-blue-500/10",
     },
     {
       title: "Total Reports",
@@ -23,7 +22,7 @@ export function KPICards({ data }: KPICardsProps) {
       change: "+14 this month",
       icon: FileText,
       color: "text-indigo-600 dark:text-indigo-400",
-      bg: "bg-indigo-50 dark:bg-indigo-950/50",
+      bg: "bg-indigo-500/10",
     },
     {
       title: "Connected Platforms",
@@ -31,7 +30,7 @@ export function KPICards({ data }: KPICardsProps) {
       change: "Google Ads, Meta, GA4",
       icon: Plug,
       color: "text-emerald-600 dark:text-emerald-400",
-      bg: "bg-emerald-50 dark:bg-emerald-950/50",
+      bg: "bg-emerald-500/10",
     },
     {
       title: "Reports This Month",
@@ -39,7 +38,7 @@ export function KPICards({ data }: KPICardsProps) {
       change: "94% client-ready",
       icon: TrendingUp,
       color: "text-violet-600 dark:text-violet-400",
-      bg: "bg-violet-50 dark:bg-violet-950/50",
+      bg: "bg-violet-500/10",
     },
   ];
 
@@ -48,9 +47,9 @@ export function KPICards({ data }: KPICardsProps) {
       {metrics.map((metric) => {
         const Icon = metric.icon;
         return (
-          <Card key={metric.title} className="border-slate-200 dark:border-slate-800">
+          <Card key={metric.title} className="border-border bg-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              <CardTitle className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 {metric.title}
               </CardTitle>
               <div className={`p-2 rounded-lg ${metric.bg}`}>
@@ -58,10 +57,10 @@ export function KPICards({ data }: KPICardsProps) {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
+              <div className="text-2xl font-bold tracking-tight text-foreground">
                 {metric.value}
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 {metric.change}
               </p>
             </CardContent>

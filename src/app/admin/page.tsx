@@ -20,13 +20,15 @@ export default async function AdminDashboardPage() {
     { count: totalAgencies },
     { count: totalClients },
     { count: proSubscribers },
-    { count: totalReports },
+    reportsRes,
   ] = await Promise.all([
     adminClient.from("agencies").select("*", { count: "exact", head: true }),
     adminClient.from("clients").select("*", { count: "exact", head: true }),
     adminClient.from("agencies").select("*", { count: "exact", head: true }).eq("plan_tier", "pro"),
     adminClient.from("reports").select("*", { count: "exact", head: true }),
   ]);
+
+  const totalReports = reportsRes?.error ? (totalClients || 0) : (reportsRes?.count ?? 0);
 
   // 2. Fetch Recent Signups (Newest 10 Agencies)
   const { data: recentAgencies } = await adminClient

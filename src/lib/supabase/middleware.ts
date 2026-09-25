@@ -1,31 +1,28 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { Database } from "@/types/database";
+import { getSupabaseUrl, getSupabaseAnonKey } from "./client";
 
 /**
- * Session refresh middleware.
- * Safely refreshes auth cookies if credentials exist, without enforcing strict redirects to /login.
- * Allows unauthenticated local dev access to /dashboard.
+ * Strict Next.js App Router Session Middleware.
+ * Refreshes auth session cookies and strictly redirects unauthenticated requests on protected routes to /login.
  */
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
   });
 
-  const rawUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const rawKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabaseUrl = getSupabaseUrl();
+  const supabaseKey = getSupabaseAnonKey();
 
-  // Safety check: If Supabase URL or Anon Key is missing or invalid, bypass session update gracefully
-  if (!rawUrl || !rawKey || !rawUrl.startsWith("http")) {
+  if (!supabaseUrl || supabaseUrl.includes("placeholder-project")) {
     return supabaseResponse;
   }
-
-  const supabaseUrl = rawUrl.replace(/\/rest\/v1\/?$/, "").replace(/\/$/, "");
 
   try {
     const supabase = createServerClient<Database>(
       supabaseUrl,
-      rawKey,
+      supabaseKey,
       {
         cookies: {
           getAll() {
@@ -46,10 +43,21 @@ export async function updateSession(request: NextRequest) {
       }
     );
 
-    // Refresh user session by calling getUser() silently
-    await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    const pathname = request.nextUrl.pathname;
+
+    // Protected routes: /dashboard and /admin
+    const isProtectedRoute = pathname.startsWith("/dashboard") || pathname.startsWith("/admin");
+
+    if (isProtectedRoute && !user) {
+      const loginUrl = new URL("/login", request.url);
+      return NextResponse.redirect(loginUrl);
+    }
   } catch (err) {
-    console.warn("Supabase session update in middleware encountered a quiet error:", err);
+    console.warn("Middleware session update quiet error:", err);
   }
 
   return supabaseResponse;
