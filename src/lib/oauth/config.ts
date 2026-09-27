@@ -1,5 +1,18 @@
 import crypto from "crypto";
 import { IntegrationProvider } from "@/types";
+import { getAppBaseUrl } from "@/lib/utils/url";
+
+/**
+ * Returns the standardized OAuth redirect URI for a provider.
+ * Ensures Google OAuth uses http://localhost:3000/api/integrations/google/callback
+ */
+export function getOAuthRedirectUri(provider: IntegrationProvider): string {
+  const baseUrl = getAppBaseUrl();
+  if (provider === "google_ads" || provider === "ga4" || (provider as string) === "google") {
+    return `${baseUrl}/api/integrations/google/callback`;
+  }
+  return `${baseUrl}/api/integrations/${provider}/callback`;
+}
 
 export interface OAuthProviderConfig {
   id: IntegrationProvider;

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { getOrHealUserAgencyId } from "@/lib/supabase/agency-helper";
 import { syncMetricsSchema } from "@/lib/validations/sync";
 import { getValidAccessToken } from "@/lib/integrations/auth";
 import { fetchGoogleAdsMetrics } from "@/lib/integrations/providers/google-ads";
@@ -45,6 +46,14 @@ export async function POST(req: Request) {
     } = await supabase.auth.getUser();
 
     if (user) {
+      const agencyId = await getOrHealUserAgencyId(user.id);
+      if (!agencyId) {
+        return NextResponse.json(
+          { error: "Unauthorized access to client data" },
+          { status: 403 }
+        );
+      }
+
       // If logged in, verify agency access to this client
       const { data: client } = await supabase
         .from("clients")
@@ -52,20 +61,11 @@ export async function POST(req: Request) {
         .eq("id", clientId)
         .single();
 
-      if (client) {
-        const { data: member } = await supabase
-          .from("agency_members")
-          .select("agency_id")
-          .eq("user_id", user.id)
-          .eq("agency_id", client.agency_id)
-          .single();
-
-        if (!member) {
-          return NextResponse.json(
-            { error: "Unauthorized access to client data" },
-            { status: 403 }
-          );
-        }
+      if (!client || client.agency_id !== agencyId) {
+        return NextResponse.json(
+          { error: "Unauthorized access to client data" },
+          { status: 403 }
+        );
       }
     }
 

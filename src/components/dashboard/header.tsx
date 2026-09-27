@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { Badge } from "@/components/ui/badge";
 import { signOutAction } from "@/app/actions/auth";
 import { getAgencyAction, AgencyWithUser } from "@/app/actions/agency";
 
@@ -61,9 +62,14 @@ export function Header() {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-56 bg-card text-card-foreground border-border">
             <DropdownMenuLabel>Active Workspace</DropdownMenuLabel>
-            <DropdownMenuItem className="font-medium">
-              <Building2 className="mr-2 h-4 w-4 text-blue-500" />
-              {agencyName}
+            <DropdownMenuItem className="font-medium flex items-center justify-between">
+              <div className="flex items-center">
+                <Building2 className="mr-2 h-4 w-4 text-blue-500" />
+                <span className="truncate">{agencyName}</span>
+              </div>
+              <Badge variant="outline" className="capitalize text-[10px] py-0 px-1.5 border-blue-300 text-blue-600 dark:border-blue-800 dark:text-blue-400">
+                {agency?.plan_tier || "normal"}
+              </Badge>
             </DropdownMenuItem>
             <DropdownMenuSeparator className="bg-border" />
             <DropdownMenuItem className="text-xs text-muted-foreground">

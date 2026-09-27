@@ -135,7 +135,7 @@ export default function ClientIntegrationsPage({ params }: ClientIntegrationsPag
     const errorParam = searchParams.get("error");
     const providerParam = searchParams.get("provider");
 
-    if (successParam === "connected") {
+    if (successParam === "connected" || successParam === "true") {
       const providerName = providerParam ? OAUTH_PROVIDERS[providerParam as IntegrationProvider]?.name || providerParam : "Platform";
       const timer = setTimeout(() => {
         setToast({
@@ -154,6 +154,7 @@ export default function ClientIntegrationsPage({ params }: ClientIntegrationsPag
         database_save_failed: "Failed to persist OAuth credentials to the database.",
         token_exchange_failed: "Failed to exchange authorization code for tokens.",
         no_agency_access: "Unauthorized agency membership.",
+        missing_env: "OAuth Client ID not configured. Please add this to your environment variables.",
       };
 
       const timer = setTimeout(() => {

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -9,8 +10,11 @@ import {
   Plug,
   Settings,
   BarChart3,
+  Shield,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
+import { getAgencyAction, AgencyWithUser } from "@/app/actions/agency";
+import { Badge } from "@/components/ui/badge";
 
 const navigationItems = [
   {
@@ -42,21 +46,45 @@ const navigationItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const [agency, setAgency] = useState<AgencyWithUser | null>(null);
+
+  useEffect(() => {
+    async function loadAgency() {
+      const res = await getAgencyAction();
+      if (res.data) {
+        setAgency(res.data);
+      }
+    }
+    loadAgency();
+  }, []);
+
+  const agencyName = agency?.name || "Reportly";
+  const planTier = (agency?.plan_tier || "normal").toUpperCase();
 
   return (
     <aside className="flex h-screen w-64 flex-col border-r border-border bg-card text-card-foreground">
       {/* Brand Header */}
-      <div className="flex h-16 items-center gap-3 border-b border-border px-6">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-xs">
-          <BarChart3 className="h-5 w-5" />
-        </div>
-        <div className="flex flex-col">
-          <span className="text-base font-bold tracking-tight text-foreground">
-            Reportly
-          </span>
-          <span className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase">
-            Agency Edition
-          </span>
+      <div className="flex h-16 items-center justify-between border-b border-border px-6">
+        <div className="flex items-center gap-3 truncate">
+          <div
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-primary-foreground shadow-xs font-bold text-sm"
+            style={{ backgroundColor: agency?.primary_color || undefined }}
+          >
+            {agency?.logo_url ? (
+              <img src={agency.logo_url} alt={agencyName} className="h-6 w-6 object-contain rounded" />
+            ) : (
+              agencyName.charAt(0).toUpperCase()
+            )}
+          </div>
+          <div className="flex flex-col truncate">
+            <span className="text-sm font-bold tracking-tight text-foreground truncate">
+              {agencyName}
+            </span>
+            <span className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase flex items-center gap-1">
+              <Shield className="h-2.5 w-2.5 text-blue-500" />
+              {planTier} PLAN
+            </span>
+          </div>
         </div>
       </div>
 

@@ -61,17 +61,17 @@ export async function getTeamMembersAction(): Promise<{
       let email = "";
 
       if (m.user_id === user.id) {
-        email = user.email || "owner@reportly.com";
+        email = user.email || user.id;
       } else {
         try {
           const { data: userData } = await adminClient.auth.admin.getUserById(m.user_id);
           if (userData?.user?.email) {
             email = userData.user.email;
           } else {
-            email = `user_${m.user_id.substring(0, 6)}@agency.com`;
+            email = `User (${m.user_id.substring(0, 8)})`;
           }
         } catch {
-          email = `user_${m.user_id.substring(0, 6)}@agency.com`;
+          email = `User (${m.user_id.substring(0, 8)})`;
         }
       }
 
