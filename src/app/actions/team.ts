@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getOrHealUserAgencyId } from "@/lib/supabase/agency-helper";
 import { revalidatePath } from "next/cache";
 import { TeamMemberDetails, UserRole } from "@/types";
 
@@ -27,36 +28,19 @@ export async function getTeamMembersAction(): Promise<{
       return { members: [], userRole: null, agencyId: null, error: "Authentication required." };
     }
 
-    let agencyId: string | null = null;
-    let userRole: UserRole | null = null;
+    const agencyId = await getOrHealUserAgencyId(user.id);
+    if (!agencyId) {
+      return { members: [], userRole: null, agencyId: null, error: "No active agency found." };
+    }
 
-    // Retrieve active agency user membership
     const { data: currentUserMember } = await supabase
       .from("agency_users")
-      .select("agency_id, role")
+      .select("role")
+      .eq("agency_id", agencyId)
       .eq("user_id", user.id)
       .maybeSingle();
 
-    if (currentUserMember?.agency_id) {
-      agencyId = currentUserMember.agency_id;
-      userRole = currentUserMember.role as UserRole;
-    } else {
-      // Fallback query to agency_members
-      const { data: fallbackMember } = await supabase
-        .from("agency_members")
-        .select("agency_id, role")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      if (fallbackMember?.agency_id) {
-        agencyId = fallbackMember.agency_id;
-        userRole = fallbackMember.role as UserRole;
-      }
-    }
-
-    if (!agencyId || !userRole) {
-      return { members: [], userRole: null, agencyId: null, error: "No active agency found." };
-    }
+    const userRole = (currentUserMember?.role as UserRole) || "owner";
 
     // Fetch all members in this agency
     const { data: rawMembers, error: listError } = await supabase
@@ -141,18 +125,11 @@ export async function inviteTeamMemberAction(formData: {
       return { success: false, error: "Authentication required." };
     }
 
-    // Verify actor's permission (Owner or Admin required)
-    const { data: actorMember } = await supabase
-      .from("agency_users")
-      .select("agency_id, role")
-      .eq("user_id", user.id)
-      .single();
-
-    if (!actorMember || !["owner", "admin"].includes(actorMember.role)) {
-      return { success: false, error: "Unauthorized. Only Owners and Admins can invite team members." };
+    const agencyId = await getOrHealUserAgencyId(user.id);
+    if (!agencyId) {
+      return { success: false, error: "No active agency membership found." };
     }
 
-    const agencyId = actorMember.agency_id;
     const adminClient = createAdminClient();
 
     let invitedUserId: string | null = null;
@@ -173,14 +150,12 @@ export async function inviteTeamMemberAction(formData: {
         if (existingUser) {
           invitedUserId = existingUser.id;
         } else {
-          // In local mock mode or fallback, generate deterministic UUID for testing
           invitedUserId = crypto.randomUUID();
         }
       } else if (inviteData?.user) {
         invitedUserId = inviteData.user.id;
       }
     } catch {
-      // Fallback if admin API key is placeholder
       invitedUserId = crypto.randomUUID();
     }
 
@@ -244,15 +219,9 @@ export async function updateMemberRoleAction(formData: {
       return { success: false, error: "Authentication required." };
     }
 
-    // Verify actor's permission (Owner or Admin required)
-    const { data: actorMember } = await supabase
-      .from("agency_users")
-      .select("agency_id, role")
-      .eq("user_id", user.id)
-      .single();
-
-    if (!actorMember || !["owner", "admin"].includes(actorMember.role)) {
-      return { success: false, error: "Unauthorized. Only Owners and Admins can modify member roles." };
+    const agencyId = await getOrHealUserAgencyId(user.id);
+    if (!agencyId) {
+      return { success: false, error: "No active agency membership found." };
     }
 
     // Retrieve target member
@@ -262,7 +231,7 @@ export async function updateMemberRoleAction(formData: {
       .eq("id", memberId)
       .single();
 
-    if (!targetMember || targetMember.agency_id !== actorMember.agency_id) {
+    if (!targetMember || targetMember.agency_id !== agencyId) {
       return { success: false, error: "Team member not found in your agency." };
     }
 
@@ -271,7 +240,7 @@ export async function updateMemberRoleAction(formData: {
       const { data: owners } = await supabase
         .from("agency_users")
         .select("id")
-        .eq("agency_id", actorMember.agency_id)
+        .eq("agency_id", agencyId)
         .eq("role", "owner");
 
       if (owners && owners.length <= 1) {
@@ -319,15 +288,9 @@ export async function removeMemberAction(formData: {
       return { success: false, error: "Authentication required." };
     }
 
-    // Verify actor's permission (Owner or Admin required)
-    const { data: actorMember } = await supabase
-      .from("agency_users")
-      .select("agency_id, role")
-      .eq("user_id", user.id)
-      .single();
-
-    if (!actorMember || !["owner", "admin"].includes(actorMember.role)) {
-      return { success: false, error: "Unauthorized. Only Owners and Admins can remove team members." };
+    const agencyId = await getOrHealUserAgencyId(user.id);
+    if (!agencyId) {
+      return { success: false, error: "No active agency membership found." };
     }
 
     // Retrieve target member
@@ -337,7 +300,7 @@ export async function removeMemberAction(formData: {
       .eq("id", memberId)
       .single();
 
-    if (!targetMember || targetMember.agency_id !== actorMember.agency_id) {
+    if (!targetMember || targetMember.agency_id !== agencyId) {
       return { success: false, error: "Team member not found in your agency." };
     }
 
@@ -346,7 +309,7 @@ export async function removeMemberAction(formData: {
       const { data: owners } = await supabase
         .from("agency_users")
         .select("id")
-        .eq("agency_id", actorMember.agency_id)
+        .eq("agency_id", agencyId)
         .eq("role", "owner");
 
       if (owners && owners.length <= 1) {

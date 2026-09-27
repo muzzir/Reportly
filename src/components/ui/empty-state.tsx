@@ -1,12 +1,12 @@
 "use client";
 
-import { LucideIcon } from "lucide-react";
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils/cn";
 
 interface EmptyStateProps {
-  icon: LucideIcon;
+  icon?: React.ReactNode;
   title: string;
   description: string;
   actionLabel?: string;
@@ -17,7 +17,7 @@ interface EmptyStateProps {
 }
 
 export function EmptyState({
-  icon: Icon,
+  icon,
   title,
   description,
   actionLabel,
@@ -33,9 +33,11 @@ export function EmptyState({
         className
       )}
     >
-      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400 ring-8 ring-blue-50/50 dark:ring-blue-950/30">
-        <Icon className="h-7 w-7" />
-      </div>
+      {icon && (
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400 ring-8 ring-blue-50/50 dark:ring-blue-950/30">
+          {icon}
+        </div>
+      )}
 
       <h3 className="mt-5 text-base font-bold text-slate-900 dark:text-slate-100 tracking-tight">
         {title}

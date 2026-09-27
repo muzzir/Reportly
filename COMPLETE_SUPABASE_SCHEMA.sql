@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS public.agencies (
   website TEXT,
   stripe_customer_id TEXT,
   stripe_subscription_id TEXT,
-  plan_tier TEXT NOT NULL DEFAULT 'free' CHECK (plan_tier IN ('free', 'pro', 'enterprise')),
+  plan_tier TEXT NOT NULL DEFAULT 'normal' CHECK (plan_tier IN ('normal', 'pro', 'enterprise')),
   plan_status TEXT NOT NULL DEFAULT 'active' CHECK (plan_status IN ('active', 'canceled', 'past_due', 'trialing')),
   current_period_end TIMESTAMPTZ,
   onboarding_completed BOOLEAN NOT NULL DEFAULT false,

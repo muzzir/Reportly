@@ -93,7 +93,7 @@ export default async function ClientReportsPage({
           </div>
 
           <EmptyState
-            icon={BarChart3}
+            icon={<BarChart3 className="h-7 w-7" />}
             title="No marketing metrics found for this date range"
             description={`No metrics were found for ${client.name} between ${metricsData.startDate} and ${metricsData.endDate}. Connect data sources or adjust your date filter range.`}
           />

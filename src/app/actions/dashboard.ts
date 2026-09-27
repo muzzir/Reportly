@@ -1,54 +1,68 @@
-"use client";
+"use server";
 
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@/lib/supabase/server";
+import { getOrHealUserAgencyId } from "@/lib/supabase/agency-helper";
 import { DashboardKPISummary } from "@/types";
 
 export async function getDashboardMetricsAction(): Promise<{ data?: DashboardKPISummary; error?: string }> {
-  const supabase = createClient();
+  try {
+    const supabase = await createClient();
 
-  // Query counts in parallel
-  const [clientsRes, reportsRes, integrationsRes] = await Promise.all([
-    supabase.from("clients").select("id", { count: "exact", head: true }),
-    supabase.from("reports").select("id, created_at"),
-    supabase.from("integrations").select("id", { count: "exact", head: true }),
-  ]);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return { error: "Authentication required." };
+    }
 
-  if (clientsRes.error) console.error("Error fetching clients count:", clientsRes.error);
-  if (integrationsRes.error) console.error("Error fetching integrations count:", integrationsRes.error);
+    const agencyId = await getOrHealUserAgencyId(user.id);
 
-  const totalClients = clientsRes.count ?? 0;
-  const connectedPlatforms = integrationsRes.count ?? 0;
+    if (!agencyId) {
+      return {
+        data: {
+          totalClients: 0,
+          totalReports: 0,
+          connectedPlatforms: 0,
+          reportsThisMonth: 0,
+        },
+      };
+    }
 
-  let totalReports = 0;
-  let reportsThisMonth = 0;
+    // Query counts in parallel for active agency
+    const [clientsRes, reportsRes, integrationsRes] = await Promise.all([
+      supabase.from("clients").select("id", { count: "exact", head: true }).eq("agency_id", agencyId),
+      supabase.from("reports").select("id, created_at").eq("agency_id", agencyId),
+      supabase.from("integrations").select("id", { count: "exact", head: true }).eq("agency_id", agencyId),
+    ]);
 
-  if (!reportsRes.error && reportsRes.data) {
-    totalReports = reportsRes.data.length;
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
+    if (clientsRes.error) console.error("Error fetching clients count:", clientsRes.error);
+    if (integrationsRes.error) console.error("Error fetching integrations count:", integrationsRes.error);
 
-    reportsThisMonth = reportsRes.data.filter((r) => {
-      const reportDate = new Date(r.created_at);
-      return reportDate.getMonth() === currentMonth && reportDate.getFullYear() === currentYear;
-    }).length;
-  } else {
-    // Fallback: If 'reports' table is not present in live DB, calculate reports from client automation activity
-    const { count } = await supabase
-      .from("clients")
-      .select("id", { count: "exact", head: true })
-      .not("last_report_sent_at", "is", null);
-      
-    totalReports = count ?? 0;
-    reportsThisMonth = count ?? 0;
+    const totalClients = clientsRes.count ?? 0;
+    const connectedPlatforms = integrationsRes.count ?? 0;
+
+    let totalReports = 0;
+    let reportsThisMonth = 0;
+
+    if (!reportsRes.error && reportsRes.data) {
+      totalReports = reportsRes.data.length;
+      const now = new Date();
+      const currentMonth = now.getMonth();
+      const currentYear = now.getFullYear();
+
+      reportsThisMonth = reportsRes.data.filter((r) => {
+        const reportDate = new Date(r.created_at);
+        return reportDate.getMonth() === currentMonth && reportDate.getFullYear() === currentYear;
+      }).length;
+    }
+
+    return {
+      data: {
+        totalClients,
+        totalReports,
+        connectedPlatforms,
+        reportsThisMonth,
+      },
+    };
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Failed to fetch dashboard metrics." };
   }
-
-  return {
-    data: {
-      totalClients,
-      totalReports,
-      connectedPlatforms,
-      reportsThisMonth,
-    },
-  };
 }

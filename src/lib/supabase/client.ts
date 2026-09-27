@@ -1,5 +1,8 @@
 import { createBrowserClient as createBrowserSupabaseClient } from "@supabase/ssr";
 import { Database } from "@/types/database";
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+let client: SupabaseClient<Database> | undefined;
 
 /**
  * Sanitizes raw environment variable strings by stripping leading/trailing whitespace
@@ -32,10 +35,22 @@ export function getSupabaseServiceRoleKey(): string {
 /**
  * Creates a browser-side Supabase client with database types.
  * Safe for use inside React Client Components.
+ * Uses singleton instance in browser context to avoid duplicate GoTrueClient instances.
  */
 export function createClient() {
-  return createBrowserSupabaseClient<Database>(
-    getSupabaseUrl(),
-    getSupabaseAnonKey()
-  );
+  if (typeof window === "undefined") {
+    return createBrowserSupabaseClient<Database>(
+      getSupabaseUrl(),
+      getSupabaseAnonKey()
+    );
+  }
+
+  if (!client) {
+    client = createBrowserSupabaseClient<Database>(
+      getSupabaseUrl(),
+      getSupabaseAnonKey()
+    );
+  }
+
+  return client;
 }

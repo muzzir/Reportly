@@ -83,6 +83,7 @@ export async function completeOnboardingAction(
           logo_url: logoUrl?.trim() || null,
           primary_color: primaryColor,
           website: website?.trim() || null,
+          plan_tier: "normal",
           onboarding_completed: true,
         })
         .select("id")

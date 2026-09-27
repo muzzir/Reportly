@@ -125,7 +125,7 @@ export default function ReportsPage() {
         </div>
       ) : reports.length === 0 ? (
         <EmptyState
-          icon={FileText}
+          icon={<FileText className="h-7 w-7" />}
           title="No marketing reports generated yet"
           description="Create your first performance audit report to aggregate multi-channel marketing data for your clients."
           actionLabel="Create First Report"

@@ -123,21 +123,21 @@ export function BillingDashboard({ agency }: BillingDashboardProps) {
 
       <div className="space-y-6 max-w-5xl">
         {/* Current Plan Overview Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-card text-card-foreground p-6 rounded-xl border border-border shadow-xs">
           <div className="flex items-center gap-4">
             <div
               className={`flex h-12 w-12 items-center justify-center rounded-xl font-bold text-xl shadow-xs ${
                 isPro
                   ? "bg-amber-500 text-white"
-                  : "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                  : "bg-muted text-muted-foreground"
               }`}
             >
               {isPro ? <Crown className="h-6 w-6" /> : <Zap className="h-6 w-6" />}
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-xl font-bold text-slate-900 dark:text-slate-50">
-                  Current Agency Tier: <span className="capitalize">{agency.plan_tier}</span>
+                <h2 className="text-xl font-bold text-foreground">
+                  Current Agency Tier: <span className="capitalize">{agency.plan_tier || "normal"}</span>
                 </h2>
                 {isPro ? (
                   <Badge className="bg-emerald-600 text-white hover:bg-emerald-700 text-xs">
@@ -145,16 +145,16 @@ export function BillingDashboard({ agency }: BillingDashboardProps) {
                   </Badge>
                 ) : (
                   <Badge variant="secondary" className="text-xs">
-                    Free Tier
+                    Normal Tier
                   </Badge>
                 )}
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 {isPro
                   ? formattedPeriodEnd
                     ? `Your Pro subscription automatically renews on ${formattedPeriodEnd}.`
-                    : "Your agency enjoys full Pro access."
-                  : "You are currently on the Free plan (limited to 1 client account)."}
+                    : "Your agency enjoys full Pro access with unlimited client accounts."
+                  : "You are currently on the Normal plan (up to 3 client accounts included)."}
               </p>
             </div>
           </div>
@@ -165,51 +165,51 @@ export function BillingDashboard({ agency }: BillingDashboardProps) {
               disabled={loadingAction === "portal"}
               variant="outline"
               size="sm"
-              className="gap-2 text-xs border-slate-300 dark:border-slate-700"
+              className="gap-2 text-xs border-border"
             >
               {loadingAction === "portal" ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
               ) : (
-                <CreditCard className="h-3.5 w-3.5 text-slate-500" />
+                <CreditCard className="h-3.5 w-3.5 text-muted-foreground" />
               )}
               <span>Manage Invoices & Cards</span>
-              <ExternalLink className="h-3 w-3 text-slate-400" />
+              <ExternalLink className="h-3 w-3 text-muted-foreground" />
             </Button>
           )}
         </div>
 
         {/* Pricing Cards Comparison */}
         <div className="grid gap-6 md:grid-cols-2 pt-2">
-          {/* Free Tier Card */}
+          {/* Normal Tier Card */}
           <Card
-            className={`border-slate-200 dark:border-slate-800 flex flex-col justify-between ${
-              !isPro ? "ring-2 ring-blue-600 dark:ring-blue-500" : ""
+            className={`border-border flex flex-col justify-between ${
+              !isPro ? "ring-2 ring-primary" : ""
             }`}
           >
             <CardHeader className="pb-4">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg font-bold">Starter Free</CardTitle>
+                <CardTitle className="text-lg font-bold">Normal Tier</CardTitle>
                 {!isPro && (
-                  <Badge variant="outline" className="border-blue-300 text-blue-700 dark:text-blue-400">
+                  <Badge variant="outline" className="border-primary text-primary">
                     Current Plan
                   </Badge>
                 )}
               </div>
               <CardDescription className="text-xs">
-                Ideal for trying Reportly with a single client project.
+                Ideal for managing up to 3 client accounts.
               </CardDescription>
               <div className="mt-4 flex items-baseline gap-1">
-                <span className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
+                <span className="text-3xl font-bold tracking-tight text-foreground">
                   $0
                 </span>
-                <span className="text-xs text-slate-500">/ forever</span>
+                <span className="text-xs text-muted-foreground">/ month</span>
               </div>
             </CardHeader>
 
-            <CardContent className="space-y-3 text-xs text-slate-600 dark:text-slate-300">
+            <CardContent className="space-y-3 text-xs text-muted-foreground">
               <div className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-emerald-600 shrink-0" />
-                <span>Up to 1 Client Account</span>
+                <span>Up to 3 Client Accounts</span>
               </div>
               <div className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-emerald-600 shrink-0" />
@@ -217,15 +217,7 @@ export function BillingDashboard({ agency }: BillingDashboardProps) {
               </div>
               <div className="flex items-center gap-2">
                 <Check className="h-4 w-4 text-emerald-600 shrink-0" />
-                <span>Standard PDF Exports</span>
-              </div>
-              <div className="flex items-center gap-2 opacity-50">
-                <Check className="h-4 w-4 text-slate-400 shrink-0" />
-                <span className="line-through">Custom White-Label Branding</span>
-              </div>
-              <div className="flex items-center gap-2 opacity-50">
-                <Check className="h-4 w-4 text-slate-400 shrink-0" />
-                <span className="line-through">Automated Monthly Email Reports</span>
+                <span>Standard PDF Exports & Live Link Sharing</span>
               </div>
             </CardContent>
 
@@ -238,17 +230,17 @@ export function BillingDashboard({ agency }: BillingDashboardProps) {
 
           {/* Pro Tier Card */}
           <Card
-            className={`border-slate-200 dark:border-slate-800 flex flex-col justify-between relative overflow-hidden ${
-              isPro ? "ring-2 ring-amber-500" : "border-blue-200 shadow-md dark:border-blue-900"
+            className={`border-border flex flex-col justify-between relative overflow-hidden ${
+              isPro ? "ring-2 ring-amber-500" : "shadow-md"
             }`}
           >
-            <div className="absolute top-0 right-0 bg-gradient-to-l from-blue-600 to-indigo-600 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg uppercase tracking-wider flex items-center gap-1">
+            <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] font-bold px-3 py-1 rounded-bl-lg uppercase tracking-wider flex items-center gap-1">
               <Sparkles className="h-3 w-3" /> Recommended
             </div>
 
             <CardHeader className="pb-4">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg font-bold text-slate-900 dark:text-slate-50 flex items-center gap-1.5">
+                <CardTitle className="text-lg font-bold text-foreground flex items-center gap-1.5">
                   Pro Agency
                 </CardTitle>
                 {isPro && (
@@ -261,15 +253,15 @@ export function BillingDashboard({ agency }: BillingDashboardProps) {
                 Unlimited scaling, full white-labeled branding, and monthly cron automation.
               </CardDescription>
               <div className="mt-4 flex items-baseline gap-1">
-                <span className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
+                <span className="text-3xl font-bold tracking-tight text-foreground">
                   $49
                 </span>
-                <span className="text-xs text-slate-500">/ month</span>
+                <span className="text-xs text-muted-foreground">/ month</span>
               </div>
             </CardHeader>
 
-            <CardContent className="space-y-3 text-xs text-slate-600 dark:text-slate-300">
-              <div className="flex items-center gap-2 font-medium text-slate-900 dark:text-slate-100">
+            <CardContent className="space-y-3 text-xs text-muted-foreground">
+              <div className="flex items-center gap-2 font-medium text-foreground">
                 <Check className="h-4 w-4 text-emerald-600 shrink-0" />
                 <span>Unlimited Client Accounts</span>
               </div>
@@ -312,7 +304,7 @@ export function BillingDashboard({ agency }: BillingDashboardProps) {
                   onClick={handleUpgrade}
                   disabled={loadingAction === "checkout"}
                   size="sm"
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs gap-2 font-medium shadow-sm"
+                  className="w-full bg-primary text-primary-foreground hover:bg-primary/90 text-xs gap-2 font-medium shadow-sm"
                 >
                   {loadingAction === "checkout" ? (
                     <Loader2 className="h-3.5 w-3.5 animate-spin" />

@@ -8,6 +8,7 @@ import { CreateReportDialog } from "@/components/reports/create-report-dialog";
 import { getDashboardMetricsAction } from "@/app/actions/dashboard";
 import { getClientsAction } from "@/app/actions/clients";
 import { getAgencyAction, AgencyWithUser } from "@/app/actions/agency";
+import { getReportsAction, ReportWithClient } from "@/app/actions/reports";
 import { DashboardKPISummary, Client } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Plus, FileText } from "lucide-react";
@@ -15,34 +16,39 @@ import { Plus, FileText } from "lucide-react";
 export default function DashboardOverviewPage() {
   const [metrics, setMetrics] = useState<DashboardKPISummary | undefined>(undefined);
   const [clients, setClients] = useState<Client[]>([]);
+  const [reports, setReports] = useState<ReportWithClient[]>([]);
   const [agency, setAgency] = useState<AgencyWithUser | null>(null);
   const [clientDialogOpen, setClientDialogOpen] = useState(false);
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
 
   const fetchOverviewData = useCallback(async () => {
-    const [metRes, cliRes, agRes] = await Promise.all([
+    const [metRes, cliRes, agRes, repRes] = await Promise.all([
       getDashboardMetricsAction(),
       getClientsAction(),
       getAgencyAction(),
+      getReportsAction(),
     ]);
 
     if (metRes.data) setMetrics(metRes.data);
     if (cliRes.data) setClients(cliRes.data);
     if (agRes.data) setAgency(agRes.data);
+    if (repRes.data) setReports(repRes.data);
   }, []);
 
   useEffect(() => {
     let ignore = false;
     async function load() {
-      const [metRes, cliRes, agRes] = await Promise.all([
+      const [metRes, cliRes, agRes, repRes] = await Promise.all([
         getDashboardMetricsAction(),
         getClientsAction(),
         getAgencyAction(),
+        getReportsAction(),
       ]);
       if (!ignore) {
         if (metRes.data) setMetrics(metRes.data);
         if (cliRes.data) setClients(cliRes.data);
         if (agRes.data) setAgency(agRes.data);
+        if (repRes.data) setReports(repRes.data);
       }
     }
     load();
@@ -103,8 +109,11 @@ export default function DashboardOverviewPage() {
       {/* KPI Cards */}
       <KPICards data={metrics} />
 
-      {/* Main Content Sections */}
-      <RecentActivity />
+      {/* Recent Activity List */}
+      <RecentActivity
+        reports={reports}
+        onNewReportClick={() => setReportDialogOpen(true)}
+      />
     </div>
   );
 }

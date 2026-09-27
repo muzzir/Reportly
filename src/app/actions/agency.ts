@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { getOrHealUserAgencyId } from "@/lib/supabase/agency-helper";
 import { agencySchema, AgencyFormInput } from "@/lib/validations/agency";
 import { Agency } from "@/types";
 
@@ -21,23 +22,7 @@ export async function getAgencyAction(): Promise<{ data?: AgencyWithUser; error?
       return { error: "Authentication required." };
     }
 
-    const { data: member } = await supabase
-      .from("agency_users")
-      .select("agency_id")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    let agencyId = member?.agency_id;
-
-    if (!agencyId) {
-      const { data: fallback } = await supabase
-        .from("agency_members")
-        .select("agency_id")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      agencyId = fallback?.agency_id;
-    }
+    const agencyId = await getOrHealUserAgencyId(user.id);
 
     if (!agencyId) {
       return { error: "No active agency membership found for user." };
@@ -78,21 +63,7 @@ export async function updateAgencyAction(
       return { error: "Authentication required." };
     }
 
-    const { data: member } = await supabase
-      .from("agency_users")
-      .select("agency_id")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    let agencyId = member?.agency_id;
-    if (!agencyId) {
-      const { data: fallback } = await supabase
-        .from("agency_members")
-        .select("agency_id")
-        .eq("user_id", user.id)
-        .maybeSingle();
-      agencyId = fallback?.agency_id;
-    }
+    const agencyId = await getOrHealUserAgencyId(user.id);
 
     if (!agencyId) {
       return { error: "No active agency membership found." };
@@ -147,21 +118,7 @@ export async function uploadAgencyLogoAction(
       return { error: "Authentication required." };
     }
 
-    const { data: member } = await supabase
-      .from("agency_users")
-      .select("agency_id")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    let agencyId = member?.agency_id;
-    if (!agencyId) {
-      const { data: fallback } = await supabase
-        .from("agency_members")
-        .select("agency_id")
-        .eq("user_id", user.id)
-        .maybeSingle();
-      agencyId = fallback?.agency_id;
-    }
+    const agencyId = await getOrHealUserAgencyId(user.id);
 
     if (!agencyId) {
       return { error: "No active agency membership found." };

@@ -19,12 +19,17 @@ export function CreateReportDialog({ open, onOpenChange, clients, onReportCreate
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const todayStr = new Date().toISOString().split("T")[0];
+  const firstDayOfMonthStr = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+    .toISOString()
+    .split("T")[0];
+
   const [formData, setFormData] = useState({
     client_id: clients[0]?.id || "",
     title: "",
-    period_start: "2026-08-01",
-    period_end: "2026-08-31",
-    status: "published" as const,
+    period_start: firstDayOfMonthStr,
+    period_end: todayStr,
+    status: "draft" as const,
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -32,14 +37,23 @@ export function CreateReportDialog({ open, onOpenChange, clients, onReportCreate
     setLoading(true);
     setError(null);
 
-    const selectedClientId = formData.client_id || clients[0]?.id;
-    if (!selectedClientId) {
+    const selectedClient = clients.find((c) => c.id === (formData.client_id || clients[0]?.id));
+    if (!selectedClient) {
       setError("Please select or create a client first.");
       setLoading(false);
       return;
     }
 
-    const res = await createReportAction({ ...formData, client_id: selectedClientId });
+    const reportTitle = formData.title.trim() || `${selectedClient.name} Performance Audit`;
+
+    const res = await createReportAction({
+      client_id: selectedClient.id,
+      title: reportTitle,
+      period_start: formData.period_start,
+      period_end: formData.period_end,
+      status: "draft",
+    });
+
     setLoading(false);
 
     if (res.error) {
@@ -48,9 +62,9 @@ export function CreateReportDialog({ open, onOpenChange, clients, onReportCreate
       setFormData({
         client_id: clients[0]?.id || "",
         title: "",
-        period_start: "2026-08-01",
-        period_end: "2026-08-31",
-        status: "published",
+        period_start: firstDayOfMonthStr,
+        period_end: todayStr,
+        status: "draft",
       });
       onOpenChange(false);
       if (onReportCreated) onReportCreated();
@@ -62,28 +76,28 @@ export function CreateReportDialog({ open, onOpenChange, clients, onReportCreate
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5 text-blue-600" />
-            Create Marketing Report
+            <FileText className="h-5 w-5 text-primary" />
+            Create Draft Report
           </DialogTitle>
           <DialogDescription className="text-xs">
-            Generate an automated performance audit report for your client.
+            Generate a performance report draft for your client.
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <div className="rounded-md border border-red-200 bg-red-50 p-2.5 text-xs text-red-600 dark:border-red-900 dark:bg-red-950/50 dark:text-red-300">
+            <div className="rounded-md border border-destructive/30 bg-destructive/10 p-2.5 text-xs text-destructive">
               {error}
             </div>
           )}
 
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
-              Target Client <span className="text-red-500">*</span>
+            <label className="text-xs font-medium text-foreground">
+              Target Client <span className="text-destructive">*</span>
             </label>
             <select
-              className="flex h-9 w-full rounded-md border border-slate-200 bg-transparent px-3 py-1 text-sm shadow-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-slate-950 dark:border-slate-800 dark:focus-visible:ring-slate-300"
-              value={formData.client_id}
+              className="flex h-9 w-full rounded-md border border-border bg-background px-3 py-1 text-sm shadow-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring text-foreground"
+              value={formData.client_id || clients[0]?.id || ""}
               onChange={(e) => setFormData({ ...formData, client_id: e.target.value })}
             >
               {clients.length === 0 && <option value="">No clients found (Add client first)</option>}
@@ -96,12 +110,11 @@ export function CreateReportDialog({ open, onOpenChange, clients, onReportCreate
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
-              Report Title <span className="text-red-500">*</span>
+            <label className="text-xs font-medium text-foreground">
+              Report Title
             </label>
             <Input
-              required
-              placeholder="e.g. August 2026 Omnichannel Marketing Audit"
+              placeholder="e.g. Monthly Performance Audit"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
             />
@@ -109,7 +122,7 @@ export function CreateReportDialog({ open, onOpenChange, clients, onReportCreate
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
+              <label className="text-xs font-medium text-foreground">
                 Period Start
               </label>
               <Input
@@ -120,7 +133,7 @@ export function CreateReportDialog({ open, onOpenChange, clients, onReportCreate
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
+              <label className="text-xs font-medium text-foreground">
                 Period End
               </label>
               <Input
@@ -140,9 +153,9 @@ export function CreateReportDialog({ open, onOpenChange, clients, onReportCreate
             >
               Cancel
             </Button>
-            <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white" disabled={loading}>
+            <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/90" disabled={loading}>
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Generate Report
+              Create Draft Report
             </Button>
           </DialogFooter>
         </form>

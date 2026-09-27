@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { getOrHealUserAgencyId } from "@/lib/supabase/agency-helper";
 import { AgencySettingsForm } from "@/components/settings/AgencySettingsForm";
 import { SettingsNavTabs } from "@/components/settings/SettingsNavTabs";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,41 +13,33 @@ export default async function SettingsPage() {
   } = await supabase.auth.getUser();
 
   let agency = null;
-  let userRole: string | null = null;
+  let userRole: string | null = "owner";
   let errorMessage: string | null = null;
 
   if (!user) {
     errorMessage = "Authentication required to view settings.";
   } else {
-    // Get user agency membership from agency_users or agency_members
-    const { data: member } = await supabase
-      .from("agency_users")
-      .select("agency_id, role")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    let activeAgencyId = member?.agency_id;
-    userRole = member?.role || null;
-
-    if (!activeAgencyId) {
-      const { data: fallback } = await supabase
-        .from("agency_members")
-        .select("agency_id, role")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      activeAgencyId = fallback?.agency_id;
-      userRole = fallback?.role || null;
-    }
+    const activeAgencyId = await getOrHealUserAgencyId(user.id);
 
     if (activeAgencyId) {
       const { data: agencyData } = await supabase
         .from("agencies")
         .select("*")
         .eq("id", activeAgencyId)
-        .single();
+        .maybeSingle();
 
       agency = agencyData;
+
+      const { data: userRoleData } = await supabase
+        .from("agency_users")
+        .select("role")
+        .eq("agency_id", activeAgencyId)
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (userRoleData?.role) {
+        userRole = userRoleData.role;
+      }
     } else {
       errorMessage = "No active agency membership found.";
     }
@@ -55,10 +48,10 @@ export default async function SettingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">
           Agency Settings
         </h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+        <p className="text-sm text-muted-foreground mt-0.5">
           Customize your agency profile, upload your logo, and select brand colors for dynamic white-labeled reports.
         </p>
       </div>
@@ -66,9 +59,9 @@ export default async function SettingsPage() {
       <SettingsNavTabs userRole={userRole} />
 
       {errorMessage || !agency ? (
-        <Card className="border-red-200 bg-red-50/50 p-6 dark:border-red-900/50 dark:bg-red-950/20 max-w-2xl">
-          <CardContent className="flex items-center gap-3 p-0 text-red-900 dark:text-red-200">
-            <AlertCircle className="h-5 w-5 shrink-0 text-red-600 dark:text-red-400" />
+        <Card className="border-destructive/30 bg-destructive/10 p-6 max-w-2xl">
+          <CardContent className="flex items-center gap-3 p-0 text-destructive">
+            <AlertCircle className="h-5 w-5 shrink-0" />
             <p className="text-sm font-medium">
               {errorMessage || "Failed to load agency settings."}
             </p>

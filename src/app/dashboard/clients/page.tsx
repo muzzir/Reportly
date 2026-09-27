@@ -122,7 +122,7 @@ export default function ClientsPage() {
         </div>
       ) : clients.length === 0 ? (
         <EmptyState
-          icon={Users}
+          icon={<Users className="h-7 w-7" />}
           title="You don't have any clients yet"
           description="Get started by adding your first client account to generate automated performance reports."
           actionLabel="Add First Client"
